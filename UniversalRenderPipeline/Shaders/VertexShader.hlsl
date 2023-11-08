@@ -12,6 +12,7 @@ Varyings main(uint vertexID : SV_VertexID)
 		vertexID == 1 ? 3.0 : -1.0,
 		0.0, 1.0
 		);
+
 	output.screenUV = float2(
 		vertexID <= 1 ? 0.0 : 2.0,
 		vertexID == 1 ? 2.0 : 0.0

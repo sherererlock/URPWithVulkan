@@ -875,8 +875,8 @@ std::array<VkPipelineShaderStageCreateInfo, 2> CreaterShader(VkDevice device, st
 
 void CreateGraphicsPipeline(VulkanInfo& vulkanInfo)
 {
-	std::string vertexFileName = "D:/Games/URPWithVulkan/UniversalRenderPipeline/shaders/VertexShader.vert.spv";
-	std::string fragmentFileName = "D:/Games/URPWithVulkan/UniversalRenderPipeline/shaders/PixelShader.frag.spv";
+	std::string vertexFileName = "D:/Games/URPWithVulkan/UniversalRenderPipeline/shaders/VertexShader.hlsl.spv";
+	std::string fragmentFileName = "D:/Games/URPWithVulkan/UniversalRenderPipeline/shaders/PixelShader.hlsl.spv";
 
 	auto shaderStages = CreaterShader(vulkanInfo.device, vertexFileName, fragmentFileName);
 
