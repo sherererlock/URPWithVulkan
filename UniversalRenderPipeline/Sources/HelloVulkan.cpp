@@ -702,7 +702,7 @@ VkRenderPass CreateRenderPass(VkDevice device)
 	dependency.srcSubpass = VK_SUBPASS_EXTERNAL; // 开始之前的pass
 	dependency.dstSubpass = 0; // 第一个subpass
 
-	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // A pass layout 转换的阶段
+	dependency.srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT; // A pass layout 转换的阶段
 	dependency.srcAccessMask = 0; // A pass layout 转换的阶段的操作之后就可以进行转换
 
 	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // B pass 等待执行的阶段
