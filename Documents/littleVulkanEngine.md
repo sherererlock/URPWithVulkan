@@ -35,6 +35,9 @@ class LveDevice{
     VkQueue presentQueue_;	
     std::vector~const char *> validationLayers;
     std::vector~const char *> deviceExtensions;
+    
+    void createBuffer();
+    void createImageWithInfo();
 }
 
 class LveRenderer{
