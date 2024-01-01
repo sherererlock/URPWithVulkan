@@ -19,7 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Sources\ShRenderer.cpp" />
+    <ClCompile Include="Sources\ShDeviceResources.cpp" />
+    <ClCompile Include="Sources\ShSwapchain.cpp" />
+    <ClCompile Include="Sources\ShDevice.cpp" />
     <ClCompile Include="Sources\HelloVulkan.cpp" />
+    <ClCompile Include="Sources\ShWindow.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Sources\ShRenderer.h" />
+    <ClInclude Include="Sources\ShSwapchain.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
