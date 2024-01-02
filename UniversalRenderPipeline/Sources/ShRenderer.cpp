@@ -1,5 +1,7 @@
 
 #include <stdexcept>
+#include <array>
+#include <cassert>
 
 #include "ShRenderer.h"
 
@@ -124,8 +126,40 @@ void ShRenderer::endFrame()
 
 void ShRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)
 {
+	assert(isFrameStarted && "Can't call beginSwapChainRenderPass if frame is not in progress");
+	assert(commandBuffer == getCurrentCommandBuffer() && "Can't begin render pass on command buffer from a different frame");
+
+	VkRenderPassBeginInfo renderPassInfo{};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassInfo.renderPass = shSwapchain->getRenderPass();
+	renderPassInfo.framebuffer = shSwapchain->getFrameBuffer(currentImageIndex);
+
+	renderPassInfo.renderArea.offset = { 0, 0 };
+	renderPassInfo.renderArea.extent = shSwapchain->getSwapChainExtent();
+
+	std::array<VkClearValue, 2> clearValues{};
+	clearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
+	clearValues[1].depthStencil = { 1.0f, 0 };
+	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	renderPassInfo.pClearValues = clearValues.data();
+
+    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	VkViewport viewport{};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = static_cast<float>(shSwapchain->getSwapChainExtent().width);
+	viewport.height = static_cast<float>(shSwapchain->getSwapChainExtent().height);
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	VkRect2D scissor{ {0, 0}, shSwapchain->getSwapChainExtent() };
+	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
 void ShRenderer::endSwapChainRenderPass(VkCommandBuffer commandBuffer)
 {
+	assert(isFrameStarted && "Can't call endSwapChainRenderPass if frame is not in progress");
+	assert(commandBuffer == getCurrentCommandBuffer() && "Can't end render pass on command buffer from a different frame");
+	vkCmdEndRenderPass(commandBuffer);
 }

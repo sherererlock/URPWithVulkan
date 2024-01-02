@@ -19,6 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Sources\SimpleRenderSystem.cpp" />
+    <ClCompile Include="Sources\ShPipeline.cpp" />
+    <ClCompile Include="Sources\ShGameObject.cpp" />
+    <ClCompile Include="Sources\ShModel.cpp" />
+    <ClCompile Include="Sources\ShBuffer.cpp" />
     <ClCompile Include="Sources\ShRenderer.cpp" />
     <ClCompile Include="Sources\ShDeviceResources.cpp" />
     <ClCompile Include="Sources\ShSwapchain.cpp" />
@@ -27,6 +32,13 @@
     <ClCompile Include="Sources\ShWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Sources\camera.h" />
+    <ClInclude Include="Sources\sh_frame_info.h" />
+    <ClInclude Include="Sources\SimpleRenderSystem.h" />
+    <ClInclude Include="Sources\ShPipeline.h" />
+    <ClInclude Include="Sources\ShGameObject.h" />
+    <ClInclude Include="Sources\ShModel.h" />
+    <ClInclude Include="Sources\ShBuffer.h" />
     <ClInclude Include="Sources\ShRenderer.h" />
     <ClInclude Include="Sources\ShSwapchain.h" />
   </ItemGroup>
