@@ -1206,7 +1206,7 @@ void MainLoop(VulkanInfo& vulkanInfo)
 	vkDeviceWaitIdle(vulkanInfo.device);
 }
 
-int main()
+int main1()
 {
 	std::string command = "Shaders\\compile.bat";
 

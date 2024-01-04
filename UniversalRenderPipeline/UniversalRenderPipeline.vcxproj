@@ -19,6 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Sources\InputController.cpp" />
+    <ClCompile Include="Sources\Main.cpp" />
+    <ClCompile Include="Sources\ShAPP.cpp" />
+    <ClCompile Include="Sources\ShDescriptors.cpp" />
     <ClCompile Include="Sources\SimpleRenderSystem.cpp" />
     <ClCompile Include="Sources\ShPipeline.cpp" />
     <ClCompile Include="Sources\ShGameObject.cpp" />
@@ -28,10 +32,12 @@
     <ClCompile Include="Sources\ShDeviceResources.cpp" />
     <ClCompile Include="Sources\ShSwapchain.cpp" />
     <ClCompile Include="Sources\ShDevice.cpp" />
-    <ClCompile Include="Sources\HelloVulkan.cpp" />
     <ClCompile Include="Sources\ShWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Sources\InputController.h" />
+    <ClInclude Include="Sources\ShAPP.h" />
+    <ClInclude Include="Sources\ShDescriptors.h" />
     <ClInclude Include="Sources\camera.h" />
     <ClInclude Include="Sources\sh_frame_info.h" />
     <ClInclude Include="Sources\SimpleRenderSystem.h" />
@@ -47,7 +53,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{b3ab4f2b-3a54-4bfe-a39b-f24cba67fcf1}</ProjectGuid>
     <RootNamespace>UniversalRenderPipeline</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
