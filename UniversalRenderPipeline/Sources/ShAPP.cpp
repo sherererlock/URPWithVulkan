@@ -31,9 +31,12 @@ ShAPP::ShAPP() {
 
 ShAPP::~ShAPP() {}
 
-void ShAPP::run() {
+void ShAPP::run() 
+{
 	std::vector<std::unique_ptr<ShBuffer>> uboBuffers(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
-	for (int i = 0; i < uboBuffers.size(); i++) {
+
+	for (int i = 0; i < uboBuffers.size(); i++)
+	{
 		uboBuffers[i] = std::make_unique<ShBuffer>(
 			shDevice,
 			sizeof(GlobalUbo),
@@ -85,7 +88,8 @@ void ShAPP::run() {
 		float aspect = shRenderer.getAspectRatio();
 		camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
 
-		if (auto commandBuffer = shRenderer.beginFrame()) {
+		if (auto commandBuffer = shRenderer.beginFrame())
+		{
 			int frameIndex = shRenderer.getFrameIndex();
 			FrameInfo frameInfo{
 				frameIndex,
@@ -119,7 +123,8 @@ void ShAPP::run() {
 	vkDeviceWaitIdle(shDevice.device());
 }
 
-void ShAPP::loadGameObjects() {
+void ShAPP::loadGameObjects() 
+{
 	std::shared_ptr<ShModel> lveModel =
 		ShModel::createModelFromFile(shDevice, "models/flat_vase.obj");
 	auto flatVase = ShGameObject::createGameObject();
@@ -151,7 +156,8 @@ void ShAPP::loadGameObjects() {
 		{1.f, 1.f, 1.f}  //
 	};
 
-	for (int i = 0; i < lightColors.size(); i++) {
+	for (int i = 0; i < lightColors.size(); i++)
+	{
 		auto pointLight = ShGameObject::makePointLight(0.2f);
 		pointLight.color = lightColors[i];
 		auto rotateLight = glm::rotate(

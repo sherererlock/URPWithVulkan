@@ -29,7 +29,8 @@ std::unique_ptr<ShDescriptorSetLayout> ShDescriptorSetLayout::Builder::build() c
 
 ShDescriptorSetLayout::ShDescriptorSetLayout(
 	ShDevice& shDevice, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings)
-	: shDevice{ shDevice }, bindings{ bindings } {
+	: shDevice{ shDevice }, bindings{ bindings } 
+{
 	std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings{};
 	for (auto kv : bindings) {
 		setLayoutBindings.push_back(kv.second);
@@ -82,7 +83,8 @@ ShDescriptorPool::ShDescriptorPool(
 	uint32_t maxSets,
 	VkDescriptorPoolCreateFlags poolFlags,
 	const std::vector<VkDescriptorPoolSize>& poolSizes)
-	: shDevice{ shDevice } {
+	: shDevice{ shDevice }
+{
 	VkDescriptorPoolCreateInfo descriptorPoolInfo{};
 	descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());

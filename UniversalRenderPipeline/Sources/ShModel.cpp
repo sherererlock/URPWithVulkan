@@ -46,7 +46,8 @@ std::unique_ptr<ShModel> ShModel::createModelFromFile(
 	return std::make_unique<ShModel>(device, builder);
 }
 
-void ShModel::createVertexBuffers(const std::vector<Vertex>& vertices) {
+void ShModel::createVertexBuffers(const std::vector<Vertex>& vertices)
+{
 	vertexCount = static_cast<uint32_t>(vertices.size());
 	assert(vertexCount >= 3 && "Vertex count must be at least 3");
 	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
@@ -73,7 +74,8 @@ void ShModel::createVertexBuffers(const std::vector<Vertex>& vertices) {
 	shDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
 }
 
-void ShModel::createIndexBuffers(const std::vector<uint32_t>& indices) {
+void ShModel::createIndexBuffers(const std::vector<uint32_t>& indices) 
+{
 	indexCount = static_cast<uint32_t>(indices.size());
 	hasIndexBuffer = indexCount > 0;
 
@@ -144,7 +146,8 @@ std::vector<VkVertexInputAttributeDescription> ShModel::Vertex::getAttributeDesc
 	return attributeDescriptions;
 }
 
-void ShModel::Builder::loadModel(const std::string& filepath) {
+void ShModel::Builder::loadModel(const std::string& filepath) 
+{
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;

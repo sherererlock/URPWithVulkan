@@ -25,7 +25,7 @@ private:
 	ShWindow& shWindow;
 	VkInstance instance = VK_NULL_HANDLE;
 	VkDebugUtilsMessengerEXT debugMessenger;
-	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+	VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
 
 	VkDevice device_;
 	VkSurfaceKHR surface_;
@@ -52,7 +52,6 @@ private:
 	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	void hasGflwRequiredInstanceExtensions();
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 public:
 
 #ifdef NDEBUG
@@ -72,14 +71,16 @@ public:
 	ShDevice(ShDevice&&) = delete;
 	ShDevice& operator=(ShDevice&&) = delete;
 
-	SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(physicalDevice); }
-	QueueFamilyIndices findPhysicalQueueFamilies() { return findQueueFamilies(physicalDevice); }
+	SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(physicalDevice_); }
+	QueueFamilyIndices findPhysicalQueueFamilies() { return findQueueFamilies(physicalDevice_); }
 	VkSurfaceKHR surface() const { return surface_; }
 	VkDevice device() const { return device_; }
+	VkPhysicalDevice physicalDevice() const { return physicalDevice_; }
 	VkQueue presentQueue() const { return presentQueue_; }
 	VkQueue graphicsQueue() const { return graphicsQueue_; }
 	VkCommandPool getCommandPool() const { return commandPool; }
 
+	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 	VkFormat findSupportedFormat(
 		const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
@@ -90,6 +91,8 @@ public:
 		VkMemoryPropertyFlags properties,
 		VkBuffer& buffer,
 		VkDeviceMemory& bufferMemory);
+
+	VkResult createBuffer(VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize size, VkBuffer* buffer, VkDeviceMemory* memory, void* data = nullptr);
 
 	VkCommandBuffer beginSingleTimeCommands();
 	void endSingleTimeCommands(VkCommandBuffer commandBuffer);
