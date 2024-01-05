@@ -17,6 +17,7 @@
 #include "camera.h"
 
 #include "SimpleRenderSystem.h"
+#include "PointLight.h"
 #include "InputController.h"
 
 ShAPP::ShAPP() {
@@ -59,10 +60,10 @@ void ShAPP::run() {
 		shDevice,
 		shRenderer.getSwapChainRenderPass(),
 		globalSetLayout->getDescriptorSetLayout() };
-	//PointLightSystem pointLightSystem{
-	//	shDevice,
-	//	shRenderer.getSwapChainRenderPass(),
-	//	globalSetLayout->getDescriptorSetLayout() };
+	PointLightSystem pointLightSystem{
+		shDevice,
+		shRenderer.getSwapChainRenderPass(),
+		globalSetLayout->getDescriptorSetLayout() };
 	Camera camera{};
 
 	auto viewerObject = ShGameObject::createGameObject();
@@ -99,7 +100,7 @@ void ShAPP::run() {
 			ubo.projection = camera.getProjection();
 			ubo.view = camera.getView();
 			ubo.inverseView = camera.getInverseView();
-			//pointLightSystem.update(frameInfo, ubo);
+			pointLightSystem.update(frameInfo, ubo);
 			uboBuffers[frameIndex]->writeToBuffer(&ubo);
 			uboBuffers[frameIndex]->flush();
 
@@ -108,7 +109,7 @@ void ShAPP::run() {
 
 			// order here matters
 			simpleRenderSystem.renderGameObjects(frameInfo);
-			//pointLightSystem.render(frameInfo);
+			pointLightSystem.render(frameInfo);
 
 			shRenderer.endSwapChainRenderPass(commandBuffer);
 			shRenderer.endFrame();

@@ -11,7 +11,7 @@
 #include <glm/glm/gtx/hash.hpp>
 
 #ifndef ENGINE_DIR
-#define ENGINE_DIR "../"
+#define ENGINE_DIR "./"
 #endif
 
 template <typename T, typename... Rest>

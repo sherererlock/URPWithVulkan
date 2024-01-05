@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Sources\PointLight.cpp" />
     <ClCompile Include="Sources\camera.cpp" />
     <ClCompile Include="Sources\InputController.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
@@ -36,6 +37,7 @@
     <ClCompile Include="Sources\ShWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Sources\PointLight.h" />
     <ClInclude Include="Sources\InputController.h" />
     <ClInclude Include="Sources\ShAPP.h" />
     <ClInclude Include="Sources\ShDescriptors.h" />

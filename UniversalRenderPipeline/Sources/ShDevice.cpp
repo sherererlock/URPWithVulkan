@@ -452,6 +452,7 @@ ShDevice::ShDevice(ShWindow& window) : shWindow(window)
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
+    createCommandPool();
 }
 
 ShDevice::~ShDevice()
