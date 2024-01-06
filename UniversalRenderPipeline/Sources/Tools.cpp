@@ -1,6 +1,6 @@
 #include "Tools.h"
-#include "vulkan/vulkan.h"
-#include "VulkanInitializers.hpp"
+#include <iostream>
+#include <fstream>
 
 namespace Tools
 {
@@ -147,4 +147,16 @@ namespace Tools
 		subresourceRange.layerCount = 1;
 		setImageLayout(cmdbuffer, image, oldImageLayout, newImageLayout, subresourceRange, srcStageMask, dstStageMask);
 	}
+
+	bool fileExists(const std::string& filename)
+	{
+		std::ifstream f(filename.c_str());
+		return !f.fail();
+	}
+
+	void exitFatal(const std::string& message, int32_t exitCode)
+	{
+		std::cerr << message << "\n";
+	}
+
 }

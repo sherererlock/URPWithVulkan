@@ -129,23 +129,23 @@ void ShDevice::pickPhysicalDevice()
     {
         if (isDeviceSuitable(device))
         {
-            physicalDevice = device;
+            physicalDevice_ = device;
             break;
         }
     }
 
-    if (physicalDevice == VK_NULL_HANDLE)
+    if (physicalDevice_ == VK_NULL_HANDLE)
     {
         throw std::runtime_error("failed to find a suitable GPU!");
     }
 
-    vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+    vkGetPhysicalDeviceProperties(physicalDevice_, &properties);
     std::cout << "physical device: " << properties.deviceName << std::endl;
 }
 
 void ShDevice::createLogicalDevice()
 {
-    QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+    QueueFamilyIndices indices = findQueueFamilies(physicalDevice_);
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily, indices.presentFamily };
 
@@ -185,7 +185,7 @@ void ShDevice::createLogicalDevice()
         createInfo.enabledLayerCount = 0;
     }
 
-    if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device_) != VK_SUCCESS) 
+    if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to create logical device!");
     }
@@ -411,7 +411,7 @@ void ShDevice::hasGflwRequiredInstanceExtensions()
 uint32_t ShDevice::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice_, &memProperties);
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
     {
         if ((typeFilter & (1 << i)) &&
@@ -429,7 +429,7 @@ VkFormat ShDevice::findSupportedFormat(const std::vector<VkFormat>& candidates, 
     for (VkFormat format : candidates) 
     {
         VkFormatProperties props;
-        vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+        vkGetPhysicalDeviceFormatProperties(physicalDevice_, format, &props);
 
         if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
         {

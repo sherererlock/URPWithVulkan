@@ -6,26 +6,15 @@
 #include "sh_frame_info.h"
 #include "ShGameObject.h"
 #include "ShPipeline.h"
+#include "RenderSystem.h"
 
-class SimpleRenderSystem
+class SimpleRenderSystem : public RenderSystem
 {
 public:
 	SimpleRenderSystem(
-		ShDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+		ShDevice& device, VkRenderPass renderPass, const std::vector<VkDescriptorSetLayout>& setLayouts, std::string vertexShader, std::string fragmentShader);
 	~SimpleRenderSystem();
 
-	SimpleRenderSystem(const SimpleRenderSystem&) = delete;
-	SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
-
-	void renderGameObjects(FrameInfo& frameInfo);
-
-private:
-	void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
-	void createPipeline(VkRenderPass renderPass);
-
-	ShDevice& lveDevice;
-
-	std::unique_ptr<ShPipeline> lvePipeline;
-	VkPipelineLayout pipelineLayout;
+	virtual void renderGameObjects(FrameInfo& frameInfo) override;
 };
 

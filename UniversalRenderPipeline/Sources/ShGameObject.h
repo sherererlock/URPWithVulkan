@@ -1,11 +1,14 @@
 #pragma once
 
+#include <memory>
+#include <unordered_map>
+
 #include "ShModel.h"
+#include "VulkanglTFModel.h"
 
 #include <glm/glm/gtc/matrix_transform.hpp>
 
-#include <memory>
-#include <unordered_map>
+using namespace vkglTF;
 
 struct TransformComponent {
 	glm::vec3 translation{};
@@ -49,6 +52,7 @@ public:
 
 	// Optional pointer components
 	std::shared_ptr<ShModel> model{};
+	std::shared_ptr<Model> gltfmodel{};
 	std::unique_ptr<PointLightComponent> pointLight = nullptr;
 
 private:

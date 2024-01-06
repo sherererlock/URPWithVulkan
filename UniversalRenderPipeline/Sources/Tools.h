@@ -1,4 +1,10 @@
 #pragma once
+
+#include <string>
+
+#include "vulkan/vulkan.h"
+#include "VulkanInitializers.hpp"
+
 namespace Tools
 {
 	void setImageLayout(
@@ -18,5 +24,9 @@ namespace Tools
 		VkImageLayout newImageLayout,
 		VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 		VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+
+
+	bool fileExists(const std::string& filename);
+	void exitFatal(const std::string& message, int32_t exitCode);
 };
 

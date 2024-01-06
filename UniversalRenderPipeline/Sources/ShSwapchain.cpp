@@ -327,7 +327,7 @@ ShSwapchain::ShSwapchain(ShDevice& device, VkExtent2D windowExtent)
 }
 
 ShSwapchain::ShSwapchain(ShDevice& deviceRef, VkExtent2D windowExtent, std::shared_ptr<ShSwapchain> previous)
-    : device(device), windowExtent(windowExtent), oldSwapChain(previous)
+    : device(deviceRef), windowExtent(windowExtent), oldSwapChain(previous)
 {
     init();
     oldSwapChain = nullptr;

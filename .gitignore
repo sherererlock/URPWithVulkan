@@ -34,3 +34,5 @@
 # Directory
 UniversalRenderPipeline/bin/
 UniversalRenderPipeline/.vs/
+UniversalRenderPipeline/models/
+UniversalRenderPipeline/libs/

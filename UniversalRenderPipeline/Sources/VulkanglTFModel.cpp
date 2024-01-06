@@ -22,17 +22,6 @@ VkDescriptorSetLayout vkglTF::descriptorSetLayoutUbo = VK_NULL_HANDLE;
 VkMemoryPropertyFlags vkglTF::memoryPropertyFlags = 0;
 uint32_t vkglTF::descriptorBindingFlags = vkglTF::DescriptorBindingFlags::ImageBaseColor;
 
-bool fileExists(const std::string& filename)
-{
-	std::ifstream f(filename.c_str());
-	return !f.fail();
-}
-
-void exitFatal(const std::string& message, int32_t exitCode)
-{
-	std::cerr << message << "\n";
-}
-
 /*
 	We use a custom image loading function with tinyglTF, so we can do custom stuff loading ktx textures
 */
@@ -314,8 +303,8 @@ void vkglTF::Texture::fromglTfImage(tinygltf::Image &gltfimage, std::string path
 		result = ktxTexture_CreateFromMemory(textureData, size, KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTexture);
 		delete[] textureData;
 #else
-		if (!fileExists(filename)) {
-			exitFatal("Could not load texture from " + filename + "\n\nThe file may be part of the additional asset pack.\n\nRun \"download_assets.py\" in the repository root to download the latest version.", -1);
+		if (!Tools::fileExists(filename)) {
+			Tools::exitFatal("Could not load texture from " + filename + "\n\nThe file may be part of the additional asset pack.\n\nRun \"download_assets.py\" in the repository root to download the latest version.", -1);
 		}
 		result = ktxTexture_CreateFromNamedFile(filename.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTexture);
 #endif		
@@ -504,9 +493,9 @@ vkglTF::Mesh::Mesh(ShDevice *device, glm::mat4 matrix) {
 	this->device = device;
 	this->uniformBlock.matrix = matrix;
 	device->createBuffer(
-		sizeof(uniformBlock),
 		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		sizeof(uniformBlock),
 		&uniformBuffer.buffer,
 		&uniformBuffer.memory,
 		&uniformBlock);
@@ -1239,7 +1228,7 @@ void vkglTF::Model::loadFromFile(std::string filename, ShDevice *device, VkQueue
 	}
 	else {
 		// TODO: throw
-		exitFatal("Could not load glTF file \"" + filename + "\": " + error, -1);
+		Tools::exitFatal("Could not load glTF file \"" + filename + "\": " + error, -1);
 		return;
 	}
 

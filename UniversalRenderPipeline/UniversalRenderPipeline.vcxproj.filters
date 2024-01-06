@@ -63,6 +63,36 @@
     <ClCompile Include="Sources\PointLight.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\ShTexture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\Tools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\VulkanglTFModel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\RenderSystem.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ktx\lib\checkheader.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ktx\lib\swap.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ktx\lib\texture.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ktx\lib\hashlist.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ktx\lib\memstream.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ktx\lib\filestream.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\ShSwapchain.h">
@@ -102,6 +132,18 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Sources\PointLight.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\ShTexture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\Tools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\VulkanglTFModel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\RenderSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

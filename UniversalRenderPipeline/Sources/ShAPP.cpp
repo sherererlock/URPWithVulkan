@@ -59,10 +59,12 @@ void ShAPP::run()
 			.build(globalDescriptorSets[i]);
 	}
 
+	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout() };
+
 	SimpleRenderSystem simpleRenderSystem{
 		shDevice,
 		shRenderer.getSwapChainRenderPass(),
-		globalSetLayout->getDescriptorSetLayout() };
+		setlayouts, "shaders/simple_shader.vert.spv", "shaders/simple_shader.frag.spv", };
 	PointLightSystem pointLightSystem{
 		shDevice,
 		shRenderer.getSwapChainRenderPass(),
@@ -123,6 +125,8 @@ void ShAPP::run()
 	vkDeviceWaitIdle(shDevice.device());
 }
 
+const std::string MODEL_PATH = "models/buster_drone/busterDrone.gltf";
+
 void ShAPP::loadGameObjects() 
 {
 	std::shared_ptr<ShModel> lveModel =
@@ -147,13 +151,23 @@ void ShAPP::loadGameObjects()
 	floor.transform.scale = { 3.f, 1.f, 3.f };
 	gameObjects.emplace(floor.getId(), std::move(floor));
 
+	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::PreMultiplyVertexColors | vkglTF::FileLoadingFlags::FlipY;
+	std::shared_ptr<Model> gltfModel = std::make_shared<Model>();
+	gltfModel->loadFromFile(MODEL_PATH, &shDevice, shDevice.graphicsQueue(), glTFLoadingFlags);
+
+	auto gltfgo = ShGameObject::createGameObject();
+	gltfgo.gltfmodel = gltfModel;
+	gltfgo.transform.translation = { 0.f, 0.f, 0.f };
+	gltfgo.transform.scale = { 1.f, 1.f, 1.f };
+	gameObjects.emplace(gltfgo.getId(), std::move(gltfgo));
+
 	std::vector<glm::vec3> lightColors{
 		{1.f, .1f, .1f},
-		{.1f, .1f, 1.f},
-		{.1f, 1.f, .1f},
-		{1.f, 1.f, .1f},
-		{.1f, 1.f, 1.f},
-		{1.f, 1.f, 1.f}  //
+		//{.1f, .1f, 1.f},
+		//{.1f, 1.f, .1f},
+		//{1.f, 1.f, .1f},
+		//{.1f, 1.f, 1.f},
+		//{1.f, 1.f, 1.f}  //
 	};
 
 	for (int i = 0; i < lightColors.size(); i++)

@@ -19,6 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\ktx\lib\checkheader.c" />
+    <ClCompile Include="include\ktx\lib\filestream.c" />
+    <ClCompile Include="include\ktx\lib\hashlist.c" />
+    <ClCompile Include="include\ktx\lib\memstream.c" />
+    <ClCompile Include="include\ktx\lib\swap.c" />
+    <ClCompile Include="include\ktx\lib\texture.c" />
+    <ClCompile Include="Sources\RenderSystem.cpp" />
+    <ClCompile Include="Sources\ShTexture.cpp" />
     <ClCompile Include="Sources\PointLight.cpp" />
     <ClCompile Include="Sources\camera.cpp" />
     <ClCompile Include="Sources\InputController.cpp" />
@@ -35,8 +43,12 @@
     <ClCompile Include="Sources\ShSwapchain.cpp" />
     <ClCompile Include="Sources\ShDevice.cpp" />
     <ClCompile Include="Sources\ShWindow.cpp" />
+    <ClCompile Include="Sources\Tools.cpp" />
+    <ClCompile Include="Sources\VulkanglTFModel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Sources\RenderSystem.h" />
+    <ClInclude Include="Sources\ShTexture.h" />
     <ClInclude Include="Sources\PointLight.h" />
     <ClInclude Include="Sources\InputController.h" />
     <ClInclude Include="Sources\ShAPP.h" />
@@ -50,6 +62,8 @@
     <ClInclude Include="Sources\ShBuffer.h" />
     <ClInclude Include="Sources\ShRenderer.h" />
     <ClInclude Include="Sources\ShSwapchain.h" />
+    <ClInclude Include="Sources\Tools.h" />
+    <ClInclude Include="Sources\VulkanglTFModel.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -176,7 +190,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)include\ktx\include;$(SolutionDir)include\ktx\other_include;$(SolutionDir)include\glm;$(SolutionDir)include\tinygltf;$(SolutionDir)include\glfw</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
