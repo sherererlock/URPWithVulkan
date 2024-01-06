@@ -226,6 +226,9 @@ namespace vkglTF
 		static std::vector<VkVertexInputAttributeDescription> inputAttributeDescriptions(uint32_t binding, const std::vector<VertexComponent> components);
 		/** @brief Returns the default pipeline vertex input state create info structure for the requested vertex components */
 		static VkPipelineVertexInputStateCreateInfo* getPipelineVertexInputState(const std::vector<VertexComponent> components);
+
+		static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
+		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 	};
 
 	enum FileLoadingFlags {

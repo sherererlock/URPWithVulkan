@@ -1,5 +1,9 @@
 # URPWithVulkanError
 
 1. 在gltfmodel.cpp中Mesh的构造函数里在构造mesh过程中为uniformBuffer创建vkBuffer时因为size和memProperty的参数反了而导致的报错
+
 2. 模型画出来是乱的
+
+   由于VertexInputState的stride和vertexbuffer中每个vertex的实际的stride不同
+
 3. 在shswapchain类的第二个构造函数初始化列表中由于devie成员变量的初始化值是自身而不是传入的值（变量名字拼写错误），故在更改窗口大小视会调用此构造函数，导致device为空，之后在使用device时会导致空引用崩溃

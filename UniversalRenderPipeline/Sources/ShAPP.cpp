@@ -17,6 +17,7 @@
 #include "camera.h"
 
 #include "SimpleRenderSystem.h"
+#include "GltfRenderSystem.h"
 #include "PointLight.h"
 #include "InputController.h"
 
@@ -65,6 +66,16 @@ void ShAPP::run()
 		shDevice,
 		shRenderer.getSwapChainRenderPass(),
 		setlayouts, "shaders/simple_shader.vert.spv", "shaders/simple_shader.frag.spv", };
+
+	simpleRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
+
+	GltfRenderSystem gltfRenderSystem{
+		shDevice,
+		shRenderer.getSwapChainRenderPass(),
+		setlayouts, "shaders/simple_shader.vert.spv", "shaders/simple_shader.frag.spv", };
+
+	gltfRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
+
 	PointLightSystem pointLightSystem{
 		shDevice,
 		shRenderer.getSwapChainRenderPass(),
@@ -115,6 +126,8 @@ void ShAPP::run()
 
 			// order here matters
 			simpleRenderSystem.renderGameObjects(frameInfo);
+			gltfRenderSystem.renderGameObjects(frameInfo);
+
 			pointLightSystem.render(frameInfo);
 
 			shRenderer.endSwapChainRenderPass(commandBuffer);
@@ -157,7 +170,7 @@ void ShAPP::loadGameObjects()
 
 	auto gltfgo = ShGameObject::createGameObject();
 	gltfgo.gltfmodel = gltfModel;
-	gltfgo.transform.translation = { 0.f, 0.f, 0.f };
+	gltfgo.transform.translation = { 0.f, -0.5f, 0.f };
 	gltfgo.transform.scale = { 1.f, 1.f, 1.f };
 	gameObjects.emplace(gltfgo.getId(), std::move(gltfgo));
 

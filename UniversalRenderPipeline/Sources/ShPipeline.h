@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 
 #include "ShDevice.h"
 
@@ -41,7 +42,9 @@ public:
 
 	void bind(VkCommandBuffer commandBuffer);
 
-	static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
+	typedef std::function<std::vector<VkVertexInputBindingDescription>()> getInputBinding;
+	typedef std::function<std::vector<VkVertexInputAttributeDescription>()> getInputAttribute;
+	static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, getInputBinding f1, getInputAttribute f2);
 	static void enableAlphaBlending(PipelineConfigInfo& configInfo);
 
 private:

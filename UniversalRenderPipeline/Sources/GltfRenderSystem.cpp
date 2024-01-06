@@ -1,4 +1,5 @@
-#include "SimpleRenderSystem.h"
+#include "GltfRenderSystem.h"
+#include "VulkanglTFModel.h"
 
 // libs
 #define GLM_FORCE_RADIANS
@@ -10,21 +11,19 @@
 #include <cassert>
 #include <stdexcept>
 
-SimpleRenderSystem::SimpleRenderSystem(
+GltfRenderSystem::GltfRenderSystem(
 	ShDevice& device, VkRenderPass renderPass, const std::vector<VkDescriptorSetLayout>& setLayouts, std::string vertexShader, std::string fragmentShader)
-	: RenderSystem(device, renderPass, setLayouts, vertexShader, fragmentShader) 
+	: RenderSystem(device, renderPass, setLayouts, vertexShader, fragmentShader)
 {
+
 }
 
-SimpleRenderSystem::~SimpleRenderSystem() 
+void GltfRenderSystem::createPipeline(VkRenderPass renderPass)
 {
-}
-
-void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
-	assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
+	assert(pipelineLayout != nullptr && "GltfRenderSystem Cannot create pipeline before pipeline layout");
 
 	PipelineConfigInfo pipelineConfig{};
-	ShPipeline::defaultPipelineConfigInfo(pipelineConfig, ShModel::Vertex::getBindingDescriptions, ShModel::Vertex::getAttributeDescriptions);
+	ShPipeline::defaultPipelineConfigInfo(pipelineConfig, vkglTF::Vertex::getBindingDescriptions, vkglTF::Vertex::getAttributeDescriptions);
 	pipelineConfig.renderPass = renderPass;
 	pipelineConfig.pipelineLayout = pipelineLayout;
 	lvePipeline = std::make_unique<ShPipeline>(
@@ -34,7 +33,7 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 		pipelineConfig);
 }
 
-void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo)
+void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 {
 	lvePipeline->bind(frameInfo.commandBuffer);
 
@@ -48,9 +47,10 @@ void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 		0,
 		nullptr);
 
-	for (auto& kv : frameInfo.gameObjects) {
+	for (auto& kv : frameInfo.gameObjects) 
+	{
 		auto& obj = kv.second;
-		if (obj.model == nullptr)
+		if (obj.gltfmodel == nullptr)
 			continue;
 
 		SimplePushConstantData push{};
@@ -65,7 +65,6 @@ void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 			sizeof(SimplePushConstantData),
 			&push);
 
-		obj.model->bind(frameInfo.commandBuffer);
-		obj.model->draw(frameInfo.commandBuffer);
+		obj.gltfmodel->draw(frameInfo.commandBuffer);
 	}
 }

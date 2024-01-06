@@ -132,7 +132,7 @@ void ShPipeline::bind(VkCommandBuffer commandBuffer) {
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 }
 
-void ShPipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo) {
+void ShPipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, getInputBinding f1, getInputAttribute f2) {
 	configInfo.inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	configInfo.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	configInfo.inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
@@ -202,8 +202,8 @@ void ShPipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo) {
 		static_cast<uint32_t>(configInfo.dynamicStateEnables.size());
 	configInfo.dynamicStateInfo.flags = 0;
 
-	configInfo.bindingDescriptions = ShModel::Vertex::getBindingDescriptions();
-	configInfo.attributeDescriptions = ShModel::Vertex::getAttributeDescriptions();
+	configInfo.bindingDescriptions = f1();
+	configInfo.attributeDescriptions = f2();
 }
 
 void ShPipeline::enableAlphaBlending(PipelineConfigInfo& configInfo) {

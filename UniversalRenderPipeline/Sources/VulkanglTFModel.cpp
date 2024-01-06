@@ -607,10 +607,25 @@ std::vector<VkVertexInputAttributeDescription> vkglTF::Vertex::inputAttributeDes
 	return result;
 }
 
+std::vector<VkVertexInputBindingDescription> vkglTF::Vertex::getBindingDescriptions()
+{
+	vertexInputBindingDescription = Vertex::inputBindingDescription(0);
+	return { vertexInputBindingDescription };
+}
+
+std::vector<VkVertexInputAttributeDescription> vkglTF::Vertex::getAttributeDescriptions()
+{
+	std::vector<VertexComponent> components{vkglTF::VertexComponent::Position, vkglTF::VertexComponent::Color, vkglTF::VertexComponent::Normal, vkglTF::VertexComponent::UV};
+	Vertex::vertexInputAttributeDescriptions = Vertex::inputAttributeDescriptions(0, components);
+
+	return Vertex::vertexInputAttributeDescriptions;
+}
+
 /** @brief Returns the default pipeline vertex input state create info structure for the requested vertex components */
 VkPipelineVertexInputStateCreateInfo* vkglTF::Vertex::getPipelineVertexInputState(const std::vector<VertexComponent> components) {
 	vertexInputBindingDescription = Vertex::inputBindingDescription(0);
 	Vertex::vertexInputAttributeDescriptions = Vertex::inputAttributeDescriptions(0, components);
+
 	pipelineVertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	pipelineVertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
 	pipelineVertexInputStateCreateInfo.pVertexBindingDescriptions = &Vertex::vertexInputBindingDescription;

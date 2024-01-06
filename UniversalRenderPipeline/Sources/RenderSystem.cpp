@@ -1,5 +1,3 @@
-#include <array>
-#include <cassert>
 #include <stdexcept>
 
 // libs
@@ -10,17 +8,12 @@
 
 #include "RenderSystem.h"
 
-struct SimplePushConstantData {
-	glm::mat4 modelMatrix{ 1.f };
-	glm::mat4 normalMatrix{ 1.f };
-};
-
 RenderSystem::RenderSystem(
 	ShDevice& device, VkRenderPass renderPass, const std::vector<VkDescriptorSetLayout>& setlayouts, std::string vs, std::string fs)
 	: lveDevice{ device } , vertexShader(vs), fragmentShader(fs)
 {
 	createPipelineLayout(setlayouts);
-	createPipeline(renderPass);
+
 }
 
 RenderSystem::~RenderSystem() {
@@ -43,23 +36,4 @@ void RenderSystem::createPipelineLayout(const std::vector<VkDescriptorSetLayout>
 		VK_SUCCESS) {
 		throw std::runtime_error("failed to create pipeline layout!");
 	}
-}
-
-void RenderSystem::createPipeline(VkRenderPass renderPass) {
-	assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
-
-	PipelineConfigInfo pipelineConfig{};
-	ShPipeline::defaultPipelineConfigInfo(pipelineConfig);
-	pipelineConfig.renderPass = renderPass;
-	pipelineConfig.pipelineLayout = pipelineLayout;
-	lvePipeline = std::make_unique<ShPipeline>(
-		lveDevice,
-		vertexShader,
-		fragmentShader,
-		pipelineConfig);
-}
-
-void RenderSystem::renderGameObjects(FrameInfo& frameInfo) 
-{
-
 }

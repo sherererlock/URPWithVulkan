@@ -93,6 +93,9 @@
     <ClCompile Include="include\ktx\lib\filestream.c">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\GltfRenderSystem.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\ShSwapchain.h">
@@ -144,6 +147,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Sources\RenderSystem.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\GltfRenderSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

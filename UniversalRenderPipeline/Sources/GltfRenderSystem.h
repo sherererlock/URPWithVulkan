@@ -1,16 +1,15 @@
 #pragma once
-
 #include "RenderSystem.h"
 
-class SimpleRenderSystem : public RenderSystem
+class GltfRenderSystem : public RenderSystem
 {
 public:
-	SimpleRenderSystem(
+
+	GltfRenderSystem(
 		ShDevice& device, VkRenderPass renderPass, const std::vector<VkDescriptorSetLayout>& setLayouts, std::string vertexShader, std::string fragmentShader);
-	virtual ~SimpleRenderSystem();
+	virtual ~GltfRenderSystem() {}
 
 	virtual void renderGameObjects(FrameInfo& frameInfo) override;
-
 	virtual void createPipeline(VkRenderPass renderPass) override;
 };
 
