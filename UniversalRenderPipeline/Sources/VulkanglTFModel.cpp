@@ -20,7 +20,11 @@
 VkDescriptorSetLayout vkglTF::descriptorSetLayoutImage = VK_NULL_HANDLE;
 VkDescriptorSetLayout vkglTF::descriptorSetLayoutUbo = VK_NULL_HANDLE;
 VkMemoryPropertyFlags vkglTF::memoryPropertyFlags = 0;
-uint32_t vkglTF::descriptorBindingFlags = vkglTF::DescriptorBindingFlags::ImageBaseColor;
+uint32_t vkglTF::descriptorBindingFlags = vkglTF::DescriptorBindingFlags::ImageBaseColor |
+											vkglTF::DescriptorBindingFlags::ImageNormalMap | 
+											vkglTF::DescriptorBindingFlags::ImageMetalRoughnessMap |
+											//vkglTF::DescriptorBindingFlags::ImageOcclusionMap |
+											vkglTF::DescriptorBindingFlags::ImageEmissiveMap;
 
 /*
 	We use a custom image loading function with tinyglTF, so we can do custom stuff loading ktx textures
@@ -460,6 +464,7 @@ void vkglTF::Material::createDescriptorSet(VkDescriptorPool descriptorPool, VkDe
 		writeDescriptorSet.pImageInfo = &baseColorTexture->descriptor;
 		writeDescriptorSets.push_back(writeDescriptorSet);
 	}
+
 	if (normalTexture && descriptorBindingFlags & DescriptorBindingFlags::ImageNormalMap) {
 		imageDescriptors.push_back(normalTexture->descriptor);
 		VkWriteDescriptorSet writeDescriptorSet{};
@@ -471,6 +476,43 @@ void vkglTF::Material::createDescriptorSet(VkDescriptorPool descriptorPool, VkDe
 		writeDescriptorSet.pImageInfo = &normalTexture->descriptor;
 		writeDescriptorSets.push_back(writeDescriptorSet);
 	}
+
+	if (metallicRoughnessTexture && descriptorBindingFlags & DescriptorBindingFlags::ImageMetalRoughnessMap) {
+		imageDescriptors.push_back(metallicRoughnessTexture->descriptor);
+		VkWriteDescriptorSet writeDescriptorSet{};
+		writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writeDescriptorSet.descriptorCount = 1;
+		writeDescriptorSet.dstSet = descriptorSet;
+		writeDescriptorSet.dstBinding = static_cast<uint32_t>(writeDescriptorSets.size());
+		writeDescriptorSet.pImageInfo = &metallicRoughnessTexture->descriptor;
+		writeDescriptorSets.push_back(writeDescriptorSet);
+	}
+
+	if (emissiveTexture && descriptorBindingFlags & DescriptorBindingFlags::ImageEmissiveMap) {
+		imageDescriptors.push_back(emissiveTexture->descriptor);
+		VkWriteDescriptorSet writeDescriptorSet{};
+		writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writeDescriptorSet.descriptorCount = 1;
+		writeDescriptorSet.dstSet = descriptorSet;
+		writeDescriptorSet.dstBinding = static_cast<uint32_t>(writeDescriptorSets.size());
+		writeDescriptorSet.pImageInfo = &emissiveTexture->descriptor;
+		writeDescriptorSets.push_back(writeDescriptorSet);
+	}
+
+	if (occlusionTexture && descriptorBindingFlags & DescriptorBindingFlags::ImageOcclusionMap) {
+		imageDescriptors.push_back(occlusionTexture->descriptor);
+		VkWriteDescriptorSet writeDescriptorSet{};
+		writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writeDescriptorSet.descriptorCount = 1;
+		writeDescriptorSet.dstSet = descriptorSet;
+		writeDescriptorSet.dstBinding = static_cast<uint32_t>(writeDescriptorSets.size());
+		writeDescriptorSet.pImageInfo = &occlusionTexture->descriptor;
+		writeDescriptorSets.push_back(writeDescriptorSet);
+	}
+
 	vkUpdateDescriptorSets(device->device(), static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
 }
 
@@ -615,7 +657,7 @@ std::vector<VkVertexInputBindingDescription> vkglTF::Vertex::getBindingDescripti
 
 std::vector<VkVertexInputAttributeDescription> vkglTF::Vertex::getAttributeDescriptions()
 {
-	std::vector<VertexComponent> components{vkglTF::VertexComponent::Position, vkglTF::VertexComponent::Color, vkglTF::VertexComponent::Normal, vkglTF::VertexComponent::UV};
+	std::vector<VertexComponent> components{vkglTF::VertexComponent::Position, vkglTF::VertexComponent::Normal, vkglTF::VertexComponent::UV, vkglTF::VertexComponent::Tangent};
 	Vertex::vertexInputAttributeDescriptions = Vertex::inputAttributeDescriptions(0, components);
 
 	return Vertex::vertexInputAttributeDescriptions;
@@ -1367,14 +1409,26 @@ void vkglTF::Model::loadFromFile(std::string filename, ShDevice *device, VkQueue
 	std::vector<VkDescriptorPoolSize> poolSizes = {
 		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, uboCount },
 	};
-	if (imageCount > 0) {
+
+	if (imageCount > 0)
+	{
 		if (descriptorBindingFlags & DescriptorBindingFlags::ImageBaseColor) {
 			poolSizes.push_back({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageCount });
 		}
 		if (descriptorBindingFlags & DescriptorBindingFlags::ImageNormalMap) {
 			poolSizes.push_back({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageCount });
 		}
+		if (descriptorBindingFlags & DescriptorBindingFlags::ImageMetalRoughnessMap) {
+			poolSizes.push_back({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageCount });
+		}
+		if (descriptorBindingFlags & DescriptorBindingFlags::ImageOcclusionMap) {
+			poolSizes.push_back({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageCount });
+		}
+		if (descriptorBindingFlags & DescriptorBindingFlags::ImageEmissiveMap) {
+			poolSizes.push_back({ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageCount });
+		}
 	}
+
 	VkDescriptorPoolCreateInfo descriptorPoolCI{};
 	descriptorPoolCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	descriptorPoolCI.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
@@ -1411,6 +1465,16 @@ void vkglTF::Model::loadFromFile(std::string filename, ShDevice *device, VkQueue
 			if (descriptorBindingFlags & DescriptorBindingFlags::ImageNormalMap) {
 				setLayoutBindings.push_back(Initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, static_cast<uint32_t>(setLayoutBindings.size())));
 			}
+			if (descriptorBindingFlags & DescriptorBindingFlags::ImageMetalRoughnessMap) {
+				setLayoutBindings.push_back(Initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, static_cast<uint32_t>(setLayoutBindings.size())));
+			}
+			if (descriptorBindingFlags & DescriptorBindingFlags::ImageEmissiveMap) {
+				setLayoutBindings.push_back(Initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, static_cast<uint32_t>(setLayoutBindings.size())));
+			}
+			if (descriptorBindingFlags & DescriptorBindingFlags::ImageOcclusionMap) {
+				setLayoutBindings.push_back(Initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, static_cast<uint32_t>(setLayoutBindings.size())));
+			}
+
 			VkDescriptorSetLayoutCreateInfo descriptorLayoutCI{};
 			descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 			descriptorLayoutCI.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());

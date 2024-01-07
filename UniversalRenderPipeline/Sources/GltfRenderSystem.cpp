@@ -12,8 +12,8 @@
 #include <stdexcept>
 
 GltfRenderSystem::GltfRenderSystem(
-	ShDevice& device, VkRenderPass renderPass, const std::vector<VkDescriptorSetLayout>& setLayouts, std::string vertexShader, std::string fragmentShader)
-	: RenderSystem(device, renderPass, setLayouts, vertexShader, fragmentShader)
+	ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader)
+	: RenderSystem(device, renderPass, vertexShader, fragmentShader)
 {
 
 }
@@ -31,6 +31,15 @@ void GltfRenderSystem::createPipeline(VkRenderPass renderPass)
 		vertexShader,
 		fragmentShader,
 		pipelineConfig);
+}
+
+void GltfRenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout>& setLayouts)
+{
+	if (vkglTF::descriptorSetLayoutImage != VK_NULL_HANDLE)
+	{
+		setLayouts.push_back(vkglTF::descriptorSetLayoutImage);
+	}
+	RenderSystem::createPipelineLayout(setLayouts);
 }
 
 void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
@@ -54,6 +63,8 @@ void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 			continue;
 
 		SimplePushConstantData push{};
+		auto rotateLight = glm::rotate(glm::mat4(1.f), 0.5f * frameInfo.frameTime, { 0.f, -1.f, 0.f });
+		obj.transform.translation = glm::vec3(rotateLight * glm::vec4(obj.transform.translation, 1.f));
 		push.modelMatrix = obj.transform.mat4();
 		push.normalMatrix = obj.transform.normalMatrix();
 
@@ -65,6 +76,6 @@ void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 			sizeof(SimplePushConstantData),
 			&push);
 
-		obj.gltfmodel->draw(frameInfo.commandBuffer);
+		obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages, pipelineLayout, 1);
 	}
 }

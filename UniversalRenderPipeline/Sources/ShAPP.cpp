@@ -4,7 +4,7 @@
 #include <cassert>
 #include <chrono>
 #include <stdexcept>
-
+#include <windows.h>
 // libs
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -62,18 +62,16 @@ void ShAPP::run()
 
 	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout() };
 
-	SimpleRenderSystem simpleRenderSystem{
-		shDevice,
-		shRenderer.getSwapChainRenderPass(),
-		setlayouts, "shaders/simple_shader.vert.spv", "shaders/simple_shader.frag.spv", };
+	//SimpleRenderSystem simpleRenderSystem{
+	//	shDevice,
+	//	shRenderer.getSwapChainRenderPass(),
+	//	"shaders/simple_shader.vert.spv", "shaders/simple_shader.frag.spv", };
 
-	simpleRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
+	//simpleRenderSystem.createPipelineLayout(setlayouts);
+	//simpleRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
 
-	GltfRenderSystem gltfRenderSystem{
-		shDevice,
-		shRenderer.getSwapChainRenderPass(),
-		setlayouts, "shaders/simple_shader.vert.spv", "shaders/simple_shader.frag.spv", };
-
+	GltfRenderSystem gltfRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(),"shaders/pbr_vert.hlsl.spv", "shaders/pbr_frag.hlsl.spv" };
+	gltfRenderSystem.createPipelineLayout(setlayouts);
 	gltfRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
 
 	PointLightSystem pointLightSystem{
@@ -94,6 +92,8 @@ void ShAPP::run()
 		float frameTime =
 			std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
 		currentTime = newTime;
+		DWORD sleeptime = (DWORD)(30.f - frameTime);
+		Sleep(sleeptime);
 
 		cameraController.moveInPlaneXZ(shWindow.getGLFWwindow(), frameTime, viewerObject);
 		camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
@@ -125,7 +125,7 @@ void ShAPP::run()
 			shRenderer.beginSwapChainRenderPass(commandBuffer);
 
 			// order here matters
-			simpleRenderSystem.renderGameObjects(frameInfo);
+			//simpleRenderSystem.renderGameObjects(frameInfo);
 			gltfRenderSystem.renderGameObjects(frameInfo);
 
 			pointLightSystem.render(frameInfo);
@@ -142,27 +142,27 @@ const std::string MODEL_PATH = "models/buster_drone/busterDrone.gltf";
 
 void ShAPP::loadGameObjects() 
 {
-	std::shared_ptr<ShModel> lveModel =
-		ShModel::createModelFromFile(shDevice, "models/flat_vase.obj");
-	auto flatVase = ShGameObject::createGameObject();
-	flatVase.model = lveModel;
-	flatVase.transform.translation = { -.5f, .5f, 0.f };
-	flatVase.transform.scale = { 3.f, 1.5f, 3.f };
-	gameObjects.emplace(flatVase.getId(), std::move(flatVase));
+	//std::shared_ptr<ShModel> lveModel =
+	//	ShModel::createModelFromFile(shDevice, "models/flat_vase.obj");
+	//auto flatVase = ShGameObject::createGameObject();
+	//flatVase.model = lveModel;
+	//flatVase.transform.translation = { -.5f, .5f, 0.f };
+	//flatVase.transform.scale = { 3.f, 1.5f, 3.f };
+	//gameObjects.emplace(flatVase.getId(), std::move(flatVase));
 
-	lveModel = ShModel::createModelFromFile(shDevice, "models/smooth_vase.obj");
-	auto smoothVase = ShGameObject::createGameObject();
-	smoothVase.model = lveModel;
-	smoothVase.transform.translation = { .5f, .5f, 0.f };
-	smoothVase.transform.scale = { 3.f, 1.5f, 3.f };
-	gameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
+	//lveModel = ShModel::createModelFromFile(shDevice, "models/smooth_vase.obj");
+	//auto smoothVase = ShGameObject::createGameObject();
+	//smoothVase.model = lveModel;
+	//smoothVase.transform.translation = { .5f, .5f, 0.f };
+	//smoothVase.transform.scale = { 3.f, 1.5f, 3.f };
+	//gameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
 
-	lveModel = ShModel::createModelFromFile(shDevice, "models/quad.obj");
-	auto floor = ShGameObject::createGameObject();
-	floor.model = lveModel;
-	floor.transform.translation = { 0.f, .5f, 0.f };
-	floor.transform.scale = { 3.f, 1.f, 3.f };
-	gameObjects.emplace(floor.getId(), std::move(floor));
+	//lveModel = ShModel::createModelFromFile(shDevice, "models/quad.obj");
+	//auto floor = ShGameObject::createGameObject();
+	//floor.model = lveModel;
+	//floor.transform.translation = { 0.f, .5f, 0.f };
+	//floor.transform.scale = { 3.f, 1.f, 3.f };
+	//gameObjects.emplace(floor.getId(), std::move(floor));
 
 	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::PreMultiplyVertexColors | vkglTF::FileLoadingFlags::FlipY;
 	std::shared_ptr<Model> gltfModel = std::make_shared<Model>();
@@ -176,11 +176,11 @@ void ShAPP::loadGameObjects()
 
 	std::vector<glm::vec3> lightColors{
 		{1.f, .1f, .1f},
-		//{.1f, .1f, 1.f},
-		//{.1f, 1.f, .1f},
-		//{1.f, 1.f, .1f},
-		//{.1f, 1.f, 1.f},
-		//{1.f, 1.f, 1.f}  //
+		{.1f, .1f, 1.f},
+		{.1f, 1.f, .1f},
+		{1.f, 1.f, .1f},
+		{.1f, 1.f, 1.f},
+		{1.f, 1.f, 1.f}  //
 	};
 
 	for (int i = 0; i < lightColors.size(); i++)

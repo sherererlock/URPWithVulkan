@@ -9,18 +9,16 @@
 #include "RenderSystem.h"
 
 RenderSystem::RenderSystem(
-	ShDevice& device, VkRenderPass renderPass, const std::vector<VkDescriptorSetLayout>& setlayouts, std::string vs, std::string fs)
-	: lveDevice{ device } , vertexShader(vs), fragmentShader(fs)
+	ShDevice& device, VkRenderPass renderPass, std::string vs, std::string fs)
+	: lveDevice{ device }, pipelineLayout{VK_NULL_HANDLE},vertexShader(vs), fragmentShader(fs)
 {
-	createPipelineLayout(setlayouts);
-
 }
 
 RenderSystem::~RenderSystem() {
 	vkDestroyPipelineLayout(lveDevice.device(), pipelineLayout, nullptr);
 }
 
-void RenderSystem::createPipelineLayout(const std::vector<VkDescriptorSetLayout>& setlayouts) {
+void RenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout>& setlayouts) {
 	VkPushConstantRange pushConstantRange{};
 	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstantRange.offset = 0;

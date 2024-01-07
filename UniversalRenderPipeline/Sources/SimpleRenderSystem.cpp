@@ -11,8 +11,8 @@
 #include <stdexcept>
 
 SimpleRenderSystem::SimpleRenderSystem(
-	ShDevice& device, VkRenderPass renderPass, const std::vector<VkDescriptorSetLayout>& setLayouts, std::string vertexShader, std::string fragmentShader)
-	: RenderSystem(device, renderPass, setLayouts, vertexShader, fragmentShader) 
+	ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader)
+	: RenderSystem(device, renderPass, vertexShader, fragmentShader) 
 {
 }
 

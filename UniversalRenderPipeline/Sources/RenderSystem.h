@@ -13,8 +13,7 @@ public:
 		glm::mat4 normalMatrix{ 1.f };
 	};
 
-	RenderSystem(
-		ShDevice& device, VkRenderPass renderPass, const std::vector<VkDescriptorSetLayout>& setLayouts, std::string vertexShader, std::string fragmentShader);
+	RenderSystem(ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader);
 	virtual ~RenderSystem();
 
 	RenderSystem(const RenderSystem&) = delete;
@@ -22,9 +21,9 @@ public:
 
 	virtual void renderGameObjects(FrameInfo& frameInfo) = 0;
 	virtual void createPipeline(VkRenderPass renderPass) = 0;
+	virtual void createPipelineLayout(std::vector<VkDescriptorSetLayout>& setLayouts);
 
 protected:
-	void createPipelineLayout(const std::vector<VkDescriptorSetLayout>& setLayouts);
 
 	ShDevice& lveDevice;
 

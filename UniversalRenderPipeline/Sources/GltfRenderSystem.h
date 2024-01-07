@@ -5,11 +5,11 @@ class GltfRenderSystem : public RenderSystem
 {
 public:
 
-	GltfRenderSystem(
-		ShDevice& device, VkRenderPass renderPass, const std::vector<VkDescriptorSetLayout>& setLayouts, std::string vertexShader, std::string fragmentShader);
+	GltfRenderSystem(ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader);
 	virtual ~GltfRenderSystem() {}
 
 	virtual void renderGameObjects(FrameInfo& frameInfo) override;
 	virtual void createPipeline(VkRenderPass renderPass) override;
+	virtual void createPipelineLayout(std::vector<VkDescriptorSetLayout>& setLayouts) override;
 };
 
