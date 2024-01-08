@@ -6,7 +6,7 @@ class SimpleRenderSystem : public RenderSystem
 {
 public:
 	SimpleRenderSystem(
-		ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader);
+		ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayout, std::string vertexShader, std::string fragmentShader);
 	virtual ~SimpleRenderSystem();
 
 	virtual void renderGameObjects(FrameInfo& frameInfo) override;

@@ -12,10 +12,11 @@
 #include <stdexcept>
 
 GltfRenderSystem::GltfRenderSystem(
-	ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader)
+	ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader)
 	: RenderSystem(device, renderPass, vertexShader, fragmentShader)
 {
-
+	createPipelineLayout(setlayouts);
+	createPipeline(renderPass);
 }
 
 void GltfRenderSystem::createPipeline(VkRenderPass renderPass)

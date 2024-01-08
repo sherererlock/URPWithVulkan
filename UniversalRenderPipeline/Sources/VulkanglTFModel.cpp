@@ -655,6 +655,14 @@ std::vector<VkVertexInputBindingDescription> vkglTF::Vertex::getBindingDescripti
 	return { vertexInputBindingDescription };
 }
 
+std::vector<VkVertexInputAttributeDescription> vkglTF::Vertex::getAttributeDescription()
+{
+	std::vector<VertexComponent> components{ vkglTF::VertexComponent::Position};
+	Vertex::vertexInputAttributeDescriptions = Vertex::inputAttributeDescriptions(0, components);
+
+	return Vertex::vertexInputAttributeDescriptions;
+}
+
 std::vector<VkVertexInputAttributeDescription> vkglTF::Vertex::getAttributeDescriptions()
 {
 	std::vector<VertexComponent> components{vkglTF::VertexComponent::Position, vkglTF::VertexComponent::Normal, vkglTF::VertexComponent::UV, vkglTF::VertexComponent::Tangent};

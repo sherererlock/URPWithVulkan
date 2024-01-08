@@ -11,9 +11,11 @@
 #include <stdexcept>
 
 SimpleRenderSystem::SimpleRenderSystem(
-	ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader)
+	ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayout, std::string vertexShader, std::string fragmentShader)
 	: RenderSystem(device, renderPass, vertexShader, fragmentShader) 
 {
+	createPipelineLayout(setlayout);
+	createPipeline(renderPass);
 }
 
 SimpleRenderSystem::~SimpleRenderSystem() 

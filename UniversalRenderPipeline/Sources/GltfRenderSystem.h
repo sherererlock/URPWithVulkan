@@ -5,7 +5,7 @@ class GltfRenderSystem : public RenderSystem
 {
 public:
 
-	GltfRenderSystem(ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader);
+	GltfRenderSystem(ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader);
 	virtual ~GltfRenderSystem() {}
 
 	virtual void renderGameObjects(FrameInfo& frameInfo) override;

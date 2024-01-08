@@ -70,9 +70,7 @@ void ShAPP::run()
 	//simpleRenderSystem.createPipelineLayout(setlayouts);
 	//simpleRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
 
-	GltfRenderSystem gltfRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(),"shaders/pbr_vert.hlsl.spv", "shaders/pbr_frag.hlsl.spv" };
-	gltfRenderSystem.createPipelineLayout(setlayouts);
-	gltfRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
+	GltfRenderSystem gltfRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(), setlayouts, "shaders/pbr_vert.hlsl.spv", "shaders/pbr_frag.hlsl.spv" };
 
 	PointLightSystem pointLightSystem{
 		shDevice,
