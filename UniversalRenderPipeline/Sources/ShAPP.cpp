@@ -82,6 +82,8 @@ void ShAPP::run()
 
 	auto viewerObject = ShGameObject::createGameObject();
 	viewerObject.transform.translation.z = -2.5f;
+	viewerObject.transform.translation = glm::vec3(-0.104, -1.296f, 3.86f);
+	viewerObject.transform.rotation = glm::vec3(-0.317f, 3.08f, 0.0f);
 	KeyboardMovementController cameraController{};
 
 	auto currentTime = std::chrono::high_resolution_clock::now();
@@ -175,12 +177,13 @@ void ShAPP::loadGameObjects()
 	gameObjects.emplace(gltfgo.getId(), std::move(gltfgo));
 
 	std::vector<glm::vec3> lightColors{
-		{1.f, .1f, .1f},
-		{.1f, .1f, 1.f},
-		{.1f, 1.f, .1f},
-		{1.f, 1.f, .1f},
-		{.1f, 1.f, 1.f},
-		{1.f, 1.f, 1.f}  //
+		{1.f, 1.f, 1.f},
+		//{1.f, .1f, .1f},
+		//{.1f, .1f, 1.f},
+		//{.1f, 1.f, .1f},
+		//{1.f, 1.f, .1f},
+		//{.1f, 1.f, 1.f},
+		//{1.f, 1.f, 1.f}  //
 	};
 
 	for (int i = 0; i < lightColors.size(); i++)

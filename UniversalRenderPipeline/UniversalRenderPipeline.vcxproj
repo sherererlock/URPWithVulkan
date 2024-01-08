@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Sources\ShadowPass.cpp" />
+    <ClCompile Include="Sources\ShRenderPass.cpp" />
     <ClCompile Include="Sources\GltfRenderSystem.cpp" />
     <ClCompile Include="include\ktx\lib\checkheader.c" />
     <ClCompile Include="include\ktx\lib\filestream.c" />
@@ -48,6 +50,8 @@
     <ClCompile Include="Sources\VulkanglTFModel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Sources\ShadowPass.h" />
+    <ClInclude Include="Sources\ShRenderPass.h" />
     <ClInclude Include="Sources\GltfRenderSystem.h" />
     <ClInclude Include="Sources\RenderSystem.h" />
     <ClInclude Include="Sources\ShTexture.h" />

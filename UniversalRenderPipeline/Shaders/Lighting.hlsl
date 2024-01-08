@@ -31,7 +31,7 @@ float GeometrySmith(float ndotv, float ndotl, float roughness)
 
 float3 fresnelSchlick(float cosTheta, float3 F0)
 {
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+    return F0 + (1.0f - F0) * pow(clamp(1.0f - cosTheta, 0.0f, 1.0f), 5.0f);
 }
 
 float3 F_SchlickR(float cosTheta, float3 F0, float roughness)
@@ -42,7 +42,7 @@ float3 F_SchlickR(float cosTheta, float3 F0, float roughness)
 
 float3 calculateNormal(VSOutput input)
 {
-    float3 tangentNormal = textureNormal.Sample(samplerNormal, input.UV).rgb * 2.0 - 1.0;
+    float3 tangentNormal = textureNormal.Sample(samplerNormal, input.UV).rgb * 2.0f - 1.0f;
     
     tangentNormal = normalize(tangentNormal);
     
@@ -57,7 +57,6 @@ float3 DirectLighting(float3 n, float3 v, float3 albedo, float3 F0, float roughn
 {
     float ndotv = clamp(dot(n, v), 0.0, 1.0);
     float3 f = fresnelSchlick(ndotv, F0);
-
     float3 Lo = float3(0.0f, 0.0f, 0.0f);
     for (int i = 0; i < ubo.numLights; i++)
     {
@@ -79,8 +78,8 @@ float3 DirectLighting(float3 n, float3 v, float3 albedo, float3 F0, float roughn
             float3 specular = nom / denom;
 
             float3 ks = f;
-            float3 kd = (float3(1.0f, 1.0f, 1.0f) - f);
-            kd *= (1 - metallic);
+            float3 kd = (float3(1.0f, 1.0f, 1.0f) - ks);
+            kd *= (1.0f - metallic);
 
             Lo += lightColor * (kd * albedo / PI + specular) * ndotl;
         }
