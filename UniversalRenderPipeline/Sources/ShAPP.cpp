@@ -15,6 +15,7 @@
 
 #include "shbuffer.h"
 #include "camera.h"
+#include "camera.hpp"
 
 #include "SimpleRenderSystem.h"
 #include "GltfRenderSystem.h"
@@ -87,7 +88,14 @@ void ShAPP::run()
 		shDevice,
 		shRenderer.getSwapChainRenderPass(),
 		globalSetLayout->getDescriptorSetLayout() };
-	Camera camera{};
+
+	//Camera camera{};
+	Camera2 camera{};
+	camera.type = Camera2::CameraType::firstperson;
+	camera.movementSpeed = 5.0f;
+	camera.setPosition(glm::vec3(0.0f, 0.0f, -2.0f));
+	camera.setRotation(glm::vec3(-0.0f, 0.0f, 0.0f));
+	camera.setPerspective(60.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 256.0f);
 
 	auto viewerObject = ShGameObject::createGameObject();
 	viewerObject.transform.translation.z = -2.5f;
@@ -107,11 +115,13 @@ void ShAPP::run()
 		DWORD sleeptime = (DWORD)(30.f - frameTime);
 		Sleep(sleeptime);
 
+		camera.update(frameTime / 1000.f);
+
 		cameraController.moveInPlaneXZ(shWindow.getGLFWwindow(), frameTime, viewerObject);
-		camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
+		//camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
 		float aspect = shRenderer.getAspectRatio();
-		camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
+		//camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
 
 		if (auto commandBuffer = shRenderer.beginFrame())
 		{
@@ -126,9 +136,14 @@ void ShAPP::run()
 
 			// update
 			GlobalUbo ubo{};
-			ubo.projection = camera.getProjection();
-			ubo.view = camera.getView();
-			ubo.inverseView = camera.getInverseView();
+			//ubo.projection = camera.getProjection();
+			//ubo.view = camera.getView();
+			//ubo.inverseView = camera.getInverseView();
+
+			ubo.projection = camera.matrices.perspective;
+			ubo.view = camera.matrices.view;
+			ubo.inverseView = glm::inverse(camera.matrices.view);
+
 			pointLightSystem.update(frameInfo, ubo);
 			uboBuffers[frameIndex]->writeToBuffer(&ubo);
 			uboBuffers[frameIndex]->flush();

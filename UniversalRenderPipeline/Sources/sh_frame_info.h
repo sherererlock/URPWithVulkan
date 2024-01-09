@@ -1,6 +1,6 @@
 #pragma once
 
-#include "camera.h"
+#include "camera.hpp"
 #include "ShGameObject.h"
 
 // lib
@@ -26,7 +26,7 @@ struct FrameInfo {
 	int frameIndex;
 	float frameTime;
 	VkCommandBuffer commandBuffer;
-	Camera& camera;
+	Camera2& camera;
 	VkDescriptorSet globalDescriptorSet;
 	ShGameObject::Map& gameObjects;
 };

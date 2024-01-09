@@ -170,5 +170,8 @@
     <ClInclude Include="Sources\ShadowRenderSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Sources\camera.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

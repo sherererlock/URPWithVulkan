@@ -51,6 +51,7 @@
     <ClCompile Include="Sources\VulkanglTFModel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Sources\camera.hpp" />
     <ClInclude Include="Sources\ShadowRenderSystem.h" />
     <ClInclude Include="Sources\ShadowPass.h" />
     <ClInclude Include="Sources\ShRenderPass.h" />

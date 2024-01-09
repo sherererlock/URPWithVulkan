@@ -4,7 +4,7 @@ struct VSInput
     [[vk::location(0)]] float3 Pos : POSITION0;
     [[vk::location(1)]] float3 Normal : NORMAL0;
     [[vk::location(2)]] float2 UV : TEXCOORD0;
-    [[vk::location(3)]] float3 Tangent : TEXCOORD1;
+    [[vk::location(3)]] float4 Tangent : TEXCOORD1;
 };
 
 struct VSOutput
@@ -65,7 +65,7 @@ VSOutput main(VSInput input)
     float3x3 mat = (float3x3) pushConsts.modelMatrix;
     output.Normal = mul(mat, normalize(input.Normal));
     output.UV = input.UV;
-    output.Tangent = mul(mat, normalize(input.Tangent));
+    output.Tangent = mul(mat, normalize(input.Tangent.xyz));
     float3 biasPos = output.WorldPos + output.Normal * shadowUbo.shadowBias.x;
     output.ShadowCoords = mul(shadowUbo.lightVP, float4(biasPos, 1.0f));
     

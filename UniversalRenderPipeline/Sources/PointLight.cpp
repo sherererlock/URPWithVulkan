@@ -97,7 +97,8 @@ void PointLightSystem::render(FrameInfo& frameInfo) {
 		if (obj.pointLight == nullptr) continue;
 
 		// calculate distance
-		auto offset = frameInfo.camera.getPosition() - obj.transform.translation;
+		glm::vec3 viewpos(frameInfo.camera.viewPos.x, frameInfo.camera.viewPos.y, frameInfo.camera.viewPos.z);
+		auto offset = viewpos - obj.transform.translation;
 		float disSquared = glm::dot(offset, offset);
 		sorted[disSquared] = obj.getId();
 	}
