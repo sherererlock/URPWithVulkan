@@ -1,11 +1,15 @@
 #pragma once
 #include "RenderSystem.h"
 
+class ShadowRenderSystem;
+
 class GltfRenderSystem : public RenderSystem
 {
-public:
+private:
+	ShadowRenderSystem* shadowRenderSystem;
 
-	GltfRenderSystem(ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader);
+public:
+	GltfRenderSystem(ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader, ShadowRenderSystem* rendersystem = nullptr);
 	virtual ~GltfRenderSystem() {}
 
 	virtual void renderGameObjects(FrameInfo& frameInfo) override;

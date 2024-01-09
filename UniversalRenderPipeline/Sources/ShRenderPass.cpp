@@ -65,7 +65,7 @@ void ShRenderPass::beginRenderPass(VkCommandBuffer commandBuffer)
     renderPassInfo.renderArea.offset = { 0, 0 };
     renderPassInfo.renderArea.extent = {width, height};
     auto clearValues = GetClearValues();
-    renderPassInfo.clearValueCount = clearValues.size();
+    renderPassInfo.clearValueCount = (uint32_t) clearValues.size();
     renderPassInfo.pClearValues = clearValues.data();
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -87,10 +87,12 @@ void ShRenderPass::endRenderPass(VkCommandBuffer commandBuffer)
     vkCmdEndRenderPass(commandBuffer);
 }
 
-void ShRenderPass::createAttachment(FrameBufferAttachment* attachment, VkFormat format, VkImageUsageFlags usage)
+void ShRenderPass::createAttachment(FrameBufferAttachment* attachment, VkFormat format, VkImageUsageFlags usage, VkImageLayout imageLayout)
 {
     attachment->format = format;
     attachment->device = shDevice.device();
+    attachment->layout = imageLayout;
+
     VkImageAspectFlags aspectMask = 0;
     if (usage & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
     {

@@ -1,5 +1,6 @@
 #include "GltfRenderSystem.h"
 #include "VulkanglTFModel.h"
+#include "ShadowRenderSystem.h"
 
 // libs
 #define GLM_FORCE_RADIANS
@@ -12,8 +13,8 @@
 #include <stdexcept>
 
 GltfRenderSystem::GltfRenderSystem(
-	ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader)
-	: RenderSystem(device, renderPass, vertexShader, fragmentShader)
+	ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader, ShadowRenderSystem* rendersystem)
+	: RenderSystem(device, renderPass, vertexShader, fragmentShader), shadowRenderSystem(rendersystem)
 {
 	createPipelineLayout(setlayouts);
 	createPipeline(renderPass);
@@ -40,6 +41,10 @@ void GltfRenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout>& 
 	{
 		setLayouts.push_back(vkglTF::descriptorSetLayoutImage);
 	}
+	if (shadowRenderSystem != nullptr)
+	{
+		setLayouts.push_back(shadowRenderSystem->getLightSetLayout());
+	}
 	RenderSystem::createPipelineLayout(setLayouts);
 }
 
@@ -56,6 +61,20 @@ void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 		&frameInfo.globalDescriptorSet,
 		0,
 		nullptr);
+
+	if (shadowRenderSystem != nullptr)
+	{
+		VkDescriptorSet set = shadowRenderSystem->getLightSet(frameInfo.frameIndex);
+		vkCmdBindDescriptorSets(
+			frameInfo.commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipelineLayout,
+			2,
+			1,
+			&set,
+			0,
+			nullptr);
+	}
 
 	for (auto& kv : frameInfo.gameObjects) 
 	{

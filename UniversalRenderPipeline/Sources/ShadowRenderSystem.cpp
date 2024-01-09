@@ -1,10 +1,13 @@
 #include "ShadowRenderSystem.h"
-#include "ShDescriptors.h"
 
-ShadowRenderSystem::ShadowRenderSystem(ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader)
-	: RenderSystem(device, renderPass, vertexShader, fragmentShader)
+ShadowRenderSystem::ShadowRenderSystem(ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader, VkDescriptorImageInfo imageInfo)
+	: RenderSystem(device, renderPass, vertexShader, fragmentShader), shadowMapInfo(imageInfo)
 {
 	setLayout = ShDescriptorSetLayout::Builder(lveDevice).addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT).build();
+	lightSetLayout = ShDescriptorSetLayout::Builder(lveDevice).
+		addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT).
+		addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT).build();
+
 	std::vector<VkDescriptorSetLayout> setlayouts{ setLayout->getDescriptorSetLayout()};
 	createPipelineLayout(setlayouts);
 	createPipeline(renderPass);
@@ -27,6 +30,16 @@ void ShadowRenderSystem::setupDescriptorSet(ShDescriptorPool& pool)
 		ShDescriptorWriter(*setLayout, pool)
 			.writeBuffer(0, &bufferInfo)
 			.build(descriptorSets[i]);
+	}
+
+	for (int i = 0; i < lightSets.size(); i++)
+	{
+		auto bufferInfo = buffers[i]->descriptorInfo();
+
+		ShDescriptorWriter(*lightSetLayout, pool)
+			.writeBuffer(0, &bufferInfo)
+			.writeImage(1, &shadowMapInfo)
+			.build(lightSets[i]);
 	}
 }
 

@@ -6,6 +6,7 @@ struct VSOutput
     [[vk::location(1)]] float3 Normal : NORMAL0;
     [[vk::location(2)]] float2 UV : TEXCOORD0;
     [[vk::location(3)]] float3 Tangent : TEXCOORD1;
+    [[vk::location(4)]] float4 ShadowCoords : TEXCOORD2;
 };
 
 struct PointLight
@@ -49,6 +50,7 @@ SamplerState samplerRoughness : register(s2, space1);
 Texture2D textureEmissive : register(t3, space1);
 SamplerState samplerEmissive : register(s3, space1);
 
+#include "shadow.hlsl"
 #include "Lighting.hlsl"
 
 float4 main(VSOutput input) :SV_TARGET
@@ -67,7 +69,8 @@ float4 main(VSOutput input) :SV_TARGET
     F0 = lerp(F0, albedo, metallic);
     
     float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, input);
+    float shadow = getShadow(input.ShadowCoords);
     
-    return float4(Lo, 1.0f);
+    return float4(Lo * shadow, 1.0f);
 
 }

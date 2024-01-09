@@ -1,8 +1,7 @@
 #pragma once
 #include "RenderSystem.h"
 #include "ShSwapchain.h"
-class ShDescriptorSetLayout;
-class ShDescriptorPool;
+#include "ShDescriptors.h"
 
 class ShadowRenderSystem : public RenderSystem
 {
@@ -12,12 +11,19 @@ private:
 	float zFar = 96.0f;
 	std::unique_ptr<ShDescriptorSetLayout> setLayout;
 	std::array<VkDescriptorSet, ShSwapchain::MAX_FRAMES_IN_FLIGHT> descriptorSets;
-
 	std::array<std::unique_ptr<ShBuffer>, ShSwapchain::MAX_FRAMES_IN_FLIGHT> buffers;
 
+	std::unique_ptr<ShDescriptorSetLayout> lightSetLayout;
+	std::array<VkDescriptorSet, ShSwapchain::MAX_FRAMES_IN_FLIGHT> lightSets;
+	VkDescriptorImageInfo shadowMapInfo;
+
+
 public:
-	ShadowRenderSystem(ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader);
+	ShadowRenderSystem(ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader, VkDescriptorImageInfo imageInfo);
 	virtual ~ShadowRenderSystem();
+
+	VkDescriptorSetLayout getLightSetLayout() const { return lightSetLayout->getDescriptorSetLayout(); }
+	VkDescriptorSet getLightSet(int frameIndex) const { return lightSets[frameIndex]; }
 
 	void setupDescriptorSet(ShDescriptorPool& pool);
 	void setupLight(const ShGameObject& light, int frameIndex);

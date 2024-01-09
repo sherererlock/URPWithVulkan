@@ -24,6 +24,12 @@
 
 10. descriptorpool没有空间分配set和descriptor
 
+11. VkDescriptorImageInfo采样的layout要与VkAttachmentDescription的final layout保持一致
+
+12. 所有部分都在阴影里
+
+    在GlobalUBO中的多加了一个float4x4，导致数据错位
+
     ------
 
     # c++

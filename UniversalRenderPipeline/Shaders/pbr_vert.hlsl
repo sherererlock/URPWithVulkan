@@ -14,6 +14,7 @@ struct VSOutput
     [[vk::location(1)]] float3 Normal : NORMAL0;
     [[vk::location(2)]] float2 UV : TEXCOORD0;
     [[vk::location(3)]] float3 Tangent : TEXCOORD1;
+    [[vk::location(4)]] float4 ShadowCoords : TEXCOORD2;
 };
 
 struct PointLight
@@ -37,6 +38,16 @@ cbuffer ubo : register(b0)
     GlobalUBO ubo;
 }
 
+struct ShadowUBO
+{
+    float4x4 lightVP;
+};
+
+cbuffer shadowUbo : register(b0, space2)
+{
+    ShadowUBO shadowUbo;
+}
+
 struct PushConsts
 {
     float4x4 modelMatrix;
@@ -53,6 +64,7 @@ VSOutput main(VSInput input)
     output.Normal = mul((float3x3) pushConsts.modelMatrix, normalize(input.Normal));
     output.UV = input.UV;
     output.Tangent = mul((float3x3) pushConsts.modelMatrix, normalize(input.Tangent));
+    output.ShadowCoords = mul(shadowUbo.lightVP, float4(output.WorldPos, 1.0f));
     
     return output;
 }

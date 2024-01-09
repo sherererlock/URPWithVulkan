@@ -23,11 +23,16 @@
 #include "ShadowPass.h"
 #include "ShadowRenderSystem.h"
 
+#define MAX_SET_NUM 20
+#define MAX_UNIFORM_BUFFER_NUM 20
+#define MAX_SAMPLER_BUFFER_NUM 20
+
 ShAPP::ShAPP() {
 	globalPool =
 		ShDescriptorPool::Builder(shDevice)
-		.setMaxSets(ShSwapchain::MAX_FRAMES_IN_FLIGHT * 2)
-		.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, ShSwapchain::MAX_FRAMES_IN_FLIGHT * 2)
+		.setMaxSets(MAX_SET_NUM)
+		.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_UNIFORM_BUFFER_NUM)
+		.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_SAMPLER_BUFFER_NUM)
 		.build();
 	loadGameObjects();
 }
@@ -62,21 +67,21 @@ void ShAPP::run()
 			.build(globalDescriptorSets[i]);
 	}
 
-	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout() };
+	ShadowPass shadowPass{ shDevice,ShadowResolution, ShadowResolution };
+	ShadowRenderSystem shadowRenderSystem{ shDevice, shadowPass.getRenderPass(), "shaders/spv/shadow_vert.hlsl.spv", "shaders/spv/shadow_frag.hlsl.spv", shadowPass.getShadowMapImageInfo()};
+	shadowRenderSystem.setupDescriptorSet(*globalPool);
+
+	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout()};
 
 	//SimpleRenderSystem simpleRenderSystem{
 	//	shDevice,
 	//	shRenderer.getSwapChainRenderPass(),
-	//	"shaders/simple_shader.vert.spv", "shaders/simple_shader.frag.spv", };
+	//	"shaders/spv/simple_shader.vert.spv", "shaders/spv/simple_shader.frag.spv", };
 
 	//simpleRenderSystem.createPipelineLayout(setlayouts);
 	//simpleRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
 
-	GltfRenderSystem gltfRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(), setlayouts, "shaders/pbr_vert.hlsl.spv", "shaders/pbr_frag.hlsl.spv" };
-
-	ShadowPass shadowPass{ shDevice,ShadowResolution, ShadowResolution };
-	ShadowRenderSystem shadowRenderSystem{ shDevice, shadowPass.getRenderPass(), "shaders/shadow_vert.hlsl.spv", "shaders/shadow_frag.hlsl.spv"};
-	shadowRenderSystem.setupDescriptorSet(*globalPool);
+	GltfRenderSystem gltfRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(), setlayouts, "shaders/spv/pbr_vert.hlsl.spv", "shaders/spv/pbr_frag.hlsl.spv", &shadowRenderSystem };
 
 	PointLightSystem pointLightSystem{
 		shDevice,

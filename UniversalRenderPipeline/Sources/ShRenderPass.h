@@ -10,6 +10,7 @@ struct FrameBufferAttachment
 	VkFormat format;
 	VkSampler sampler;
 	VkDevice device;
+	VkImageLayout layout;
 
 	~FrameBufferAttachment()
 	{
@@ -21,7 +22,7 @@ struct FrameBufferAttachment
 
 	VkDescriptorImageInfo descriptor()
 	{
-		return VkDescriptorImageInfo{ sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };
+		return VkDescriptorImageInfo{ sampler, view, layout };
 	}
 };
 
@@ -41,6 +42,8 @@ protected:
 	virtual std::vector<VkImageView> GetImageViews() const = 0;
 	virtual std::vector<VkClearValue> GetClearValues() const = 0;
 
+	void createAttachment(FrameBufferAttachment* attachment, VkFormat format, VkImageUsageFlags usage, VkImageLayout imageLayout);
+
 public:
 	ShRenderPass(ShDevice& device, uint32_t w, uint32_t h);
 	virtual ~ShRenderPass();
@@ -53,6 +56,5 @@ public:
 	void beginRenderPass(VkCommandBuffer commandBuffer);
 	void endRenderPass(VkCommandBuffer commandBuffer);
 
-	void createAttachment(FrameBufferAttachment* attachment, VkFormat format, VkImageUsageFlags usage);
 };
 

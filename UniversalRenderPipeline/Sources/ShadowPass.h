@@ -17,5 +17,7 @@ protected:
 public:
 	ShadowPass(ShDevice& device, uint32_t w, uint32_t h);
 	virtual ~ShadowPass();
+
+	VkDescriptorImageInfo getShadowMapImageInfo() { return shadowMap.descriptor(); }
 };
 
