@@ -18,7 +18,8 @@ float getShadow(float4 ShadowCoords)
     ShadowCoords.xyz /= ShadowCoords.w;
     float depth = ShadowCoords.z;
     float2 uv = ShadowCoords.xy * 0.5f + float2(0.5f, 0.5f);
-    float depthInMap = textureShadow.Sample(samplerShadow, uv).r;
+    bool inmap = uv.x <= 1.0f && uv.x >= 0.0f && uv.y <= 1.0f && uv.y >= 0.0f;
+    float depthInMap = inmap ? textureShadow.Sample(samplerShadow, uv).r : 1.0f;
 
     return depth < depthInMap ? 1.0f : 0.0f;
 

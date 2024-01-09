@@ -13,8 +13,8 @@ private:
 	};
 
 private:
-	float lightFOV = 45.0f;
-	float zNear = 1.0f;
+	float lightFOV = 60.0f;
+	float zNear = 0.1f;
 	float zFar = 96.0f;
 	std::unique_ptr<ShDescriptorSetLayout> setLayout;
 	std::array<VkDescriptorSet, ShSwapchain::MAX_FRAMES_IN_FLIGHT> descriptorSets;
