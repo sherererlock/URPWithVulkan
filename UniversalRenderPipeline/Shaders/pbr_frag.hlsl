@@ -71,6 +71,8 @@ float4 main(VSOutput input) :SV_TARGET
     float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, input);
     float shadow = getShadow(input.ShadowCoords);
     
+    shadow = 1.0f;
+    Lo = pow(Lo, float3(0.45f, 0.45f, 0.45f));
     return float4(Lo * shadow, 1.0f);
 
 }

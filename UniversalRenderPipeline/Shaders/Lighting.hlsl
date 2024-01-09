@@ -56,6 +56,7 @@ float3 calculateNormal(VSOutput input)
 float3 DirectLighting(float3 n, float3 v, float3 albedo, float3 F0, float roughness, float metallic, VSOutput input)
 {
     float ndotv = clamp(dot(n, v), 0.0, 1.0);
+    return float3(ndotv, ndotv, ndotv);
     float3 f = fresnelSchlick(ndotv, F0);
     float3 Lo = float3(0.0f, 0.0f, 0.0f);
     for (int i = 0; i < ubo.numLights; i++)
