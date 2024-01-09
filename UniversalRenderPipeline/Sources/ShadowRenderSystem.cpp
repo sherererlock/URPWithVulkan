@@ -30,7 +30,7 @@ void ShadowRenderSystem::setupDescriptorSet(ShDescriptorPool& pool)
 	}
 }
 
-void ShadowRenderSystem::setupLight(ShGameObject& light, int frameIndex)
+void ShadowRenderSystem::setupLight(const ShGameObject& light, int frameIndex)
 {
 	glm::mat4 depthProjectionMatrix = glm::perspective(glm::radians(lightFOV), 1.0f, zNear, zFar);
 	glm::mat4 depthViewMatrix = glm::lookAt(light.transform.translation, glm::vec3(0.0f), glm::vec3(0, 1, 0));

@@ -20,12 +20,14 @@
 #include "GltfRenderSystem.h"
 #include "PointLight.h"
 #include "InputController.h"
+#include "ShadowPass.h"
+#include "ShadowRenderSystem.h"
 
 ShAPP::ShAPP() {
 	globalPool =
 		ShDescriptorPool::Builder(shDevice)
-		.setMaxSets(ShSwapchain::MAX_FRAMES_IN_FLIGHT)
-		.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, ShSwapchain::MAX_FRAMES_IN_FLIGHT)
+		.setMaxSets(ShSwapchain::MAX_FRAMES_IN_FLIGHT * 2)
+		.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, ShSwapchain::MAX_FRAMES_IN_FLIGHT * 2)
 		.build();
 	loadGameObjects();
 }
@@ -72,6 +74,10 @@ void ShAPP::run()
 
 	GltfRenderSystem gltfRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(), setlayouts, "shaders/pbr_vert.hlsl.spv", "shaders/pbr_frag.hlsl.spv" };
 
+	ShadowPass shadowPass{ shDevice,ShadowResolution, ShadowResolution };
+	ShadowRenderSystem shadowRenderSystem{ shDevice, shadowPass.getRenderPass(), "shaders/shadow_vert.hlsl.spv", "shaders/shadow_frag.hlsl.spv"};
+	shadowRenderSystem.setupDescriptorSet(*globalPool);
+
 	PointLightSystem pointLightSystem{
 		shDevice,
 		shRenderer.getSwapChainRenderPass(),
@@ -84,6 +90,7 @@ void ShAPP::run()
 	viewerObject.transform.rotation = glm::vec3(-0.317f, 3.08f, 0.0f);
 	KeyboardMovementController cameraController{};
 
+	auto& pointLightGO = ShGameObject::getLight(gameObjects);
 	auto currentTime = std::chrono::high_resolution_clock::now();
 	while (!shWindow.shouldClose()) {
 		glfwPollEvents();
@@ -120,6 +127,12 @@ void ShAPP::run()
 			pointLightSystem.update(frameInfo, ubo);
 			uboBuffers[frameIndex]->writeToBuffer(&ubo);
 			uboBuffers[frameIndex]->flush();
+
+			// shadow pass
+			shadowRenderSystem.setupLight(pointLightGO, frameIndex);
+			shadowPass.beginRenderPass(commandBuffer);
+			shadowRenderSystem.renderGameObjects(frameInfo);
+			shadowPass.endRenderPass(commandBuffer);
 
 			// render
 			shRenderer.beginSwapChainRenderPass(commandBuffer);

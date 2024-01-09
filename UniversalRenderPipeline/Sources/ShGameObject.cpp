@@ -1,6 +1,5 @@
 #include "ShGameObject.h"
 
-
 glm::mat4 TransformComponent::mat4() {
 	const float c3 = glm::cos(rotation.z);
 	const float s3 = glm::sin(rotation.z);
@@ -67,4 +66,16 @@ ShGameObject ShGameObject::makePointLight(float intensity, float radius, glm::ve
 	gameObj.pointLight->lightIntensity = intensity;
 
 	return gameObj;
+}
+
+const ShGameObject& ShGameObject::getLight(const ShGameObject::Map& gameObjects)
+{
+	for (auto& kv : gameObjects)
+	{
+		auto& go = kv.second;
+		if (go.pointLight != nullptr)
+			return go;
+	}
+
+	return ShGameObject::makePointLight();
 }

@@ -40,6 +40,8 @@ public:
 	static ShGameObject makePointLight(
 		float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
 
+	static const ShGameObject& getLight(const ShGameObject::Map& gos);
+
 	ShGameObject(const ShGameObject&) = delete;
 	ShGameObject& operator=(const ShGameObject&) = delete;
 	ShGameObject(ShGameObject&&) = default;

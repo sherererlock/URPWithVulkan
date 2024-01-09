@@ -35,7 +35,7 @@ protected:
 
 protected:
 	virtual std::vector<VkAttachmentDescription> GetAttachmentDescriptions() const = 0 ;
-	virtual std::vector<VkSubpassDescription> GetSubpassDescriptions(const std::vector<VkAttachmentReference> attachmentRefs) const = 0;
+	virtual std::vector<VkSubpassDescription> GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs) const = 0;
 	virtual std::vector<VkSubpassDependency> GetSubpassDependencies() const = 0;
 	virtual std::vector<VkAttachmentReference> GetAttachmentRefs() const = 0;
 	virtual std::vector<VkImageView> GetImageViews() const = 0;

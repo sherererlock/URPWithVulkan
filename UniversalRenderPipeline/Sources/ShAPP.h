@@ -25,6 +25,7 @@ private:
 public:
 	static constexpr int WIDTH = 720;
 	static constexpr int HEIGHT = 640;
+	static constexpr int ShadowResolution = 2048;
 
 	ShAPP();
 	~ShAPP();

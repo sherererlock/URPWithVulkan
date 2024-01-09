@@ -20,7 +20,7 @@ public:
 	virtual ~ShadowRenderSystem();
 
 	void setupDescriptorSet(ShDescriptorPool& pool);
-	void setupLight(ShGameObject& light, int frameIndex);
+	void setupLight(const ShGameObject& light, int frameIndex);
 
 	virtual void createPipeline(VkRenderPass renderPass) override;
 	virtual void renderGameObjects(FrameInfo& frameInfo) override;
