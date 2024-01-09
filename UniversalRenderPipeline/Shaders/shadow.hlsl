@@ -2,6 +2,7 @@
 struct ShadowUBO
 {
     float4x4 lightVP;
+    float4 shadowBias; // (normalbias, w, 0, 0)
 };
 
 cbuffer shadowUbo : register(b0, space2)

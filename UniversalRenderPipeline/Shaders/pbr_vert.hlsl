@@ -41,6 +41,7 @@ cbuffer ubo : register(b0)
 struct ShadowUBO
 {
     float4x4 lightVP;
+    float4 shadowBias; // (normalbias, w, 0, 0)
 };
 
 cbuffer shadowUbo : register(b0, space2)
@@ -64,7 +65,8 @@ VSOutput main(VSInput input)
     output.Normal = mul((float3x3) pushConsts.modelMatrix, normalize(input.Normal));
     output.UV = input.UV;
     output.Tangent = mul((float3x3) pushConsts.modelMatrix, normalize(input.Tangent));
-    output.ShadowCoords = mul(shadowUbo.lightVP, float4(output.WorldPos, 1.0f));
+    float3 biasPos = output.WorldPos + output.Normal * shadowUbo.shadowBias.x;
+    output.ShadowCoords = mul(shadowUbo.lightVP, float4(biasPos, 1.0f));
     
     return output;
 }

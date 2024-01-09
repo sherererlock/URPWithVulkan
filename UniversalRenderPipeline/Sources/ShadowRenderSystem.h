@@ -6,6 +6,13 @@
 class ShadowRenderSystem : public RenderSystem
 {
 private:
+	struct ShadowUBO
+	{
+		glm::mat4 lightVP;
+		glm::vec4 shadowBias;
+	};
+
+private:
 	float lightFOV = 45.0f;
 	float zNear = 1.0f;
 	float zFar = 96.0f;

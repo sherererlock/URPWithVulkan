@@ -1,5 +1,5 @@
 #include "ShadowRenderSystem.h"
-
+#include "ShApp.h"
 ShadowRenderSystem::ShadowRenderSystem(ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader, VkDescriptorImageInfo imageInfo)
 	: RenderSystem(device, renderPass, vertexShader, fragmentShader), shadowMapInfo(imageInfo)
 {
@@ -14,7 +14,7 @@ ShadowRenderSystem::ShadowRenderSystem(ShDevice& device, VkRenderPass renderPass
 
 	for (int i = 0; i < ShSwapchain::MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		buffers[i] = std::make_unique<ShBuffer>(device, sizeof(glm::mat4), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+		buffers[i] = std::make_unique<ShBuffer>(device, sizeof(ShadowUBO), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 		buffers[i]->map();
 	}
 }
@@ -49,7 +49,14 @@ void ShadowRenderSystem::setupLight(const ShGameObject& light, int frameIndex)
 	glm::mat4 depthViewMatrix = glm::lookAt(light.transform.translation, glm::vec3(0.0f), glm::vec3(0, 1, 0));
 
 	glm::mat4 vp = depthProjectionMatrix * depthViewMatrix;
-	buffers[frameIndex]->writeToBuffer(&vp);
+
+	ShadowUBO ubo;
+
+	ubo.lightVP = vp;
+	ubo.shadowBias.x = (zFar - zNear) / ShAPP::ShadowResolution * 1.414213f;
+	ubo.shadowBias.y = ShAPP::ShadowResolution;
+
+	buffers[frameIndex]->writeToBuffer(&ubo);
 	buffers[frameIndex]->flush();
 }
 
