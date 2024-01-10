@@ -64,9 +64,9 @@ VSOutput main(VSInput input)
     output.WorldPos = mul(pushConsts.modelMatrix, float4(input.Pos, 1.0)).xyz;
     output.Pos = mul(ubo.projection, mul(ubo.view, float4(output.WorldPos, 1.0)));
     float3x3 mat = (float3x3) pushConsts.modelMatrix;
-    output.Normal = mul(mat, normalize(input.Normal));
+    output.Normal = normalize(mul(mat, normalize(input.Normal)));
     output.UV = input.UV;
-    output.Tangent = mul(mat, normalize(input.Tangent.xyz));
+    output.Tangent = normalize(mul(mat, normalize(input.Tangent.xyz)));
     float3 biasPos = output.WorldPos + output.Normal * shadowUbo.shadowBias.x;
     output.ShadowCoords = mul(shadowUbo.lightVP, float4(biasPos, 1.0f));
     

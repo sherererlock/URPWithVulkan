@@ -90,6 +90,7 @@ void ShAPP::run()
 
 	Camera2 camera{};
 	camera.type = Camera2::CameraType::firstperson;
+	camera.flipY = true;
 	camera.movementSpeed = 2.0f;
 	camera.setPosition(glm::vec3(0.0f, 0.0f, -2.0f));
 	camera.setRotation(glm::vec3(-0.0f, 0.0f, 0.0f));
@@ -130,8 +131,8 @@ void ShAPP::run()
 			ubo.projection = camera.matrices.perspective;
 			ubo.view = camera.matrices.view;
 			ubo.inverseView = glm::inverse(camera.matrices.view);
-			ubo.viewPos = ubo.inverseView[3];
-			//ubo.viewPos = camera.viewPos;
+			//ubo.viewPos = ubo.inverseView[3];
+			ubo.viewPos = camera.viewPos;
 
 			pointLightSystem.update(frameInfo, ubo);
 			uboBuffers[frameIndex]->writeToBuffer(&ubo);
@@ -186,7 +187,7 @@ void ShAPP::loadGameObjects()
 	//floor.transform.scale = { 3.f, 1.f, 3.f };
 	//gameObjects.emplace(floor.getId(), std::move(floor));
 
-	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::PreMultiplyVertexColors | vkglTF::FileLoadingFlags::FlipY;
+	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::PreMultiplyVertexColors ;
 	std::shared_ptr<Model> gltfModel = std::make_shared<Model>();
 	gltfModel->loadFromFile(MODEL_PATH, &shDevice, shDevice.graphicsQueue(), glTFLoadingFlags);
 

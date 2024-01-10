@@ -58,24 +58,22 @@ float4 main(VSOutput input) :SV_TARGET
 {
     float3 albedo = textureColor.Sample(samplerColor, input.UV).rgb;
     albedo = pow(albedo, float3(2.2f, 2.2f, 2.2f));
+    
     float3 normal = calculateNormal(input);
+    
     float2 rm = textureRoughness.Sample(samplerRoughness, input.UV).gb;
     float roughness = rm.x;
     float metallic = rm.y;
     
-    //float3 cameraWorldPos = float3(ubo.inView[0].w, ubo.inView[1].w, ubo.inView[2].w);
-    
     float3 viewDir = normalize(ubo.viewPos.xyz - input.WorldPos);
-    //float3 viewDir = normalize(cameraWorldPos - input.WorldPos);
     
     float3 F0 = float3(0.04f, 0.04f, 0.04f);
     F0 = lerp(F0, albedo, metallic);
     
-    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, input);
     float shadow = getShadow(input.ShadowCoords);
-    
-    shadow = 1.0f;
+    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, shadow, input);
+   
     Lo = pow(Lo, float3(0.45f, 0.45f, 0.45f));
-    return float4(Lo * shadow, 1.0f);
+    return float4(Lo, 1.0f);
 
 }
