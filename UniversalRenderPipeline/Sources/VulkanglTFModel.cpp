@@ -1312,11 +1312,13 @@ void vkglTF::Model::loadFromFile(std::string filename, ShDevice *device, VkQueue
 						if (preTransform) {
 							vertex.pos = glm::vec3(localMatrix * glm::vec4(vertex.pos, 1.0f));
 							vertex.normal = glm::normalize(glm::mat3(localMatrix) * vertex.normal);
+							//vertex.tangent = localMatrix * vertex.tangent;
 						}
 						// Flip Y-Axis of vertex positions
 						if (flipY) {
 							vertex.pos.y *= -1.0f;
 							vertex.normal.y *= -1.0f;
+							//vertex.tangent.y *= -1.0f;
 						}
 						// Pre-Multiply vertex colors with material base color
 						if (preMultiplyColor) {

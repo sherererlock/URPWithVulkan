@@ -3,6 +3,7 @@
 #include "shgameobject.h"
 #include "shwindow.h"
 #include "Camera.hpp"
+#include "ShAPP.h"
 
 class KeyboardMovementController {
 public:
@@ -37,9 +38,13 @@ private:
 	} mouseButtons;
 
 	Camera2& camera;
+	ShAPP& app;
 	static Input* instance;
+	float interval = 0.5f;
 public:
-	Input(Camera2& camera) : camera(camera) { instance = this; }
+	Input(Camera2& camera,ShAPP& app) : camera(camera), app(app) { instance = this; }
+
+	void update(float deltaTime);
 
 	static void onWindowResized(GLFWwindow* window, int width, int height);
 	static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);

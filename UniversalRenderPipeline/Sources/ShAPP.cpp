@@ -92,11 +92,11 @@ void ShAPP::run()
 	camera.type = Camera2::CameraType::firstperson;
 	camera.flipY = true;
 	camera.movementSpeed = 2.0f;
-	camera.setPosition(glm::vec3(0.0f, 0.0f, -2.0f));
+	camera.setPosition(glm::vec3(0.0f, 0.0f, -1.0f));
 	camera.setRotation(glm::vec3(-0.0f, 0.0f, 0.0f));
 	camera.setPerspective(60.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 256.0f);
 
-	Input input(camera);
+	Input input(camera, *this);
 
 	auto& pointLightGO = ShGameObject::getLight(gameObjects);
 	auto currentTime = std::chrono::high_resolution_clock::now();
@@ -111,6 +111,7 @@ void ShAPP::run()
 		Sleep(sleeptime);
 
 		camera.update(frameTime);
+		input.update(frameTime);
 
 		float aspect = shRenderer.getAspectRatio();
 
@@ -120,6 +121,7 @@ void ShAPP::run()
 			FrameInfo frameInfo{
 				frameIndex,
 				frameTime,
+				lightUpdate,
 				commandBuffer,
 				camera,
 				globalDescriptorSets[frameIndex],
@@ -134,7 +136,9 @@ void ShAPP::run()
 			//ubo.viewPos = ubo.inverseView[3];
 			ubo.viewPos = camera.viewPos;
 
+			
 			pointLightSystem.update(frameInfo, ubo);
+
 			uboBuffers[frameIndex]->writeToBuffer(&ubo);
 			uboBuffers[frameIndex]->flush();
 
@@ -187,7 +191,8 @@ void ShAPP::loadGameObjects()
 	//floor.transform.scale = { 3.f, 1.f, 3.f };
 	//gameObjects.emplace(floor.getId(), std::move(floor));
 
-	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::PreMultiplyVertexColors ;
+	//const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::FlipY;
+	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices;
 	std::shared_ptr<Model> gltfModel = std::make_shared<Model>();
 	gltfModel->loadFromFile(MODEL_PATH, &shDevice, shDevice.graphicsQueue(), glTFLoadingFlags);
 
@@ -215,7 +220,7 @@ void ShAPP::loadGameObjects()
 			glm::mat4(1.f),
 			(i * glm::two_pi<float>()) / lightColors.size(),
 			{ 0.f, -1.f, 0.f });
-		pointLight.transform.translation = glm::vec3(rotateLight * glm::vec4(-1.f, -1.f, -1.f, 1.f));
+		pointLight.transform.translation = glm::vec3(rotateLight * glm::vec4(0.8f, 1.0f, 2.413f, 1.f));
 		gameObjects.emplace(pointLight.getId(), std::move(pointLight));
 	}
 }

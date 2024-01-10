@@ -44,12 +44,10 @@ float3 calculateNormal(VSOutput input)
 {
     float3 tangentNormal = textureNormal.Sample(samplerNormal, input.UV).rgb * 2.0f - float3(1.0f, 1.0f, 1.0f);
     
-    tangentNormal = normalize(tangentNormal);
-    
     float3 N = normalize(input.Normal);
     float3 T = normalize(input.Tangent);
     float3 B = normalize(cross(N, T));
-    float3x3 TBN = float3x3(T, B, N);
+    float3x3 TBN = transpose(float3x3(T, B, N));
     return normalize( mul(TBN, tangentNormal) );
 }
 
@@ -83,8 +81,8 @@ float3 DirectLighting(float3 n, float3 v, float3 albedo, float3 F0, float roughn
             float3 kd = (float3(1.0f, 1.0f, 1.0f) - ks);
             kd *= (1.0f - metallic);
 
-            //float sha = i == 0.0f ? shadow : 1.0f;
-            float sha = 1.0f;
+            float sha = i == 0.0f ? shadow : 1.0f;
+            //float sha = 1.0f;
             Lo += sha * lightColor * (kd * albedo / PI + specular) * ndotl;
 
         }

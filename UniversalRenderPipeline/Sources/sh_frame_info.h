@@ -26,6 +26,7 @@ struct GlobalUbo {
 struct FrameInfo {
 	int frameIndex;
 	float frameTime;
+	bool updateLight;
 	VkCommandBuffer commandBuffer;
 	Camera2& camera;
 	VkDescriptorSet globalDescriptorSet;

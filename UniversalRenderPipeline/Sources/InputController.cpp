@@ -39,6 +39,11 @@ void KeyboardMovementController::moveInPlaneXZ(
 	}
 }
 
+void Input::update(float deltaTime)
+{
+	interval = interval > 0.0f ? interval - deltaTime : 0.0f;
+}
+
 void Input::onWindowResized(GLFWwindow* window, int width, int height)
 {
 	if (width == 0 || height == 0) return;
@@ -84,6 +89,11 @@ void Input::KeyCallback(GLFWwindow* window, int key, int scancode, int action, i
 
 	if (key == GLFW_KEY_Q)
 	{
+		if (instance->interval <= 0.0f)
+		{
+			instance->interval = 0.5f;
+			instance->app.lightUpdate = !instance->app.lightUpdate;
+		}
 	}
 
 	if (key == GLFW_KEY_T)
