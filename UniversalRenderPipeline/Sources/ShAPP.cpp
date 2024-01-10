@@ -14,7 +14,6 @@
 #include "ShAPP.h"
 
 #include "shbuffer.h"
-#include "camera.h"
 #include "camera.hpp"
 
 #include "SimpleRenderSystem.h"
@@ -89,19 +88,14 @@ void ShAPP::run()
 		shRenderer.getSwapChainRenderPass(),
 		globalSetLayout->getDescriptorSetLayout() };
 
-	//Camera camera{};
 	Camera2 camera{};
 	camera.type = Camera2::CameraType::firstperson;
-	camera.movementSpeed = 5.0f;
+	camera.movementSpeed = 2.0f;
 	camera.setPosition(glm::vec3(0.0f, 0.0f, -2.0f));
 	camera.setRotation(glm::vec3(-0.0f, 0.0f, 0.0f));
 	camera.setPerspective(60.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 256.0f);
 
-	auto viewerObject = ShGameObject::createGameObject();
-	viewerObject.transform.translation.z = -2.5f;
-	viewerObject.transform.translation = glm::vec3(-0.104, -1.296f, 3.86f);
-	viewerObject.transform.rotation = glm::vec3(-0.317f, 3.08f, 0.0f);
-	KeyboardMovementController cameraController{};
+	Input input(camera);
 
 	auto& pointLightGO = ShGameObject::getLight(gameObjects);
 	auto currentTime = std::chrono::high_resolution_clock::now();
@@ -115,13 +109,9 @@ void ShAPP::run()
 		DWORD sleeptime = (DWORD)(30.f - frameTime);
 		Sleep(sleeptime);
 
-		camera.update(frameTime / 1000.f);
-
-		cameraController.moveInPlaneXZ(shWindow.getGLFWwindow(), frameTime, viewerObject);
-		//camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
+		camera.update(frameTime);
 
 		float aspect = shRenderer.getAspectRatio();
-		//camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
 
 		if (auto commandBuffer = shRenderer.beginFrame())
 		{
