@@ -29,6 +29,7 @@ struct GlobalUBO
     float4x4 view;
     float4x4 inView;
     float4 ambientLightColor;
+    float4 viewPos;
     PointLight pointLights[10];
     int numLights;
 };

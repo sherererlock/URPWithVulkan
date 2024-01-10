@@ -21,6 +21,7 @@ struct GlobalUBO
     float4x4 view;
     float4x4 inView;
     float4 ambientLightColor;
+    float4 viewPos;
     PointLight pointLights[10];
     int numLights;
 };
@@ -62,8 +63,10 @@ float4 main(VSOutput input) :SV_TARGET
     float roughness = rm.x;
     float metallic = rm.y;
     
-    float3 cameraWorldPos = ubo.inView[3].xyz;
-    float3 viewDir = normalize(cameraWorldPos - input.WorldPos);
+    //float3 cameraWorldPos = float3(ubo.inView[0].w, ubo.inView[1].w, ubo.inView[2].w);
+    
+    float3 viewDir = normalize(ubo.viewPos.xyz - input.WorldPos);
+    //float3 viewDir = normalize(cameraWorldPos - input.WorldPos);
     
     float3 F0 = float3(0.04f, 0.04f, 0.04f);
     F0 = lerp(F0, albedo, metallic);

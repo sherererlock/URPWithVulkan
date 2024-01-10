@@ -126,13 +126,12 @@ void ShAPP::run()
 
 			// update
 			GlobalUbo ubo{};
-			//ubo.projection = camera.getProjection();
-			//ubo.view = camera.getView();
-			//ubo.inverseView = camera.getInverseView();
 
 			ubo.projection = camera.matrices.perspective;
 			ubo.view = camera.matrices.view;
 			ubo.inverseView = glm::inverse(camera.matrices.view);
+			ubo.viewPos = ubo.inverseView[3];
+			//ubo.viewPos = camera.viewPos;
 
 			pointLightSystem.update(frameInfo, ubo);
 			uboBuffers[frameIndex]->writeToBuffer(&ubo);
