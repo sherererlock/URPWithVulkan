@@ -82,9 +82,7 @@ float3 DirectLighting(float3 n, float3 v, float3 albedo, float3 F0, float roughn
             kd *= (1.0f - metallic);
 
             float sha = i == 0.0f ? shadow : 1.0f;
-            //float sha = 1.0f;
             Lo += sha * lightColor * (kd * albedo / PI + specular) * ndotl;
-
         }
     }
 

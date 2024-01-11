@@ -60,8 +60,6 @@ float4 main(VSOutput input) :SV_TARGET
     albedo = pow(albedo, float3(2.2f, 2.2f, 2.2f));
     
     float3 normal = calculateNormal(input);
-    //float3 normal = input.Normal;
-    //normal.y = -normal.y;
     float2 rm = textureRoughness.Sample(samplerRoughness, input.UV).gb;
     float roughness = rm.x;
     float metallic = rm.y;

@@ -63,7 +63,6 @@ VSOutput main(VSInput input)
     VSOutput output = (VSOutput) 0;
     output.WorldPos = mul(pushConsts.modelMatrix, float4(input.Pos, 1.0)).xyz;
     output.Pos = mul(ubo.projection, mul(ubo.view, float4(output.WorldPos, 1.0)));
-    //output.WorldPos.y = -output.WorldPos.y;
     float3x3 mat = (float3x3) pushConsts.modelMatrix;
     output.Normal = normalize(mul(mat, normalize(input.Normal)));
     output.UV = input.UV;

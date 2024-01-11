@@ -104,14 +104,15 @@ void ShAPP::run()
 		glfwPollEvents();
 
 		auto newTime = std::chrono::high_resolution_clock::now();
-		float frameTime =
-			std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+		auto frameTime =
+			std::chrono::duration<double, std::milli>(newTime - currentTime).count();
 		currentTime = newTime;
-		DWORD sleeptime = (DWORD)(30.f - frameTime);
+		DWORD sleeptime = (DWORD)((33.0 - (double)frameTime) / 1000.0);
 		Sleep(sleeptime);
 
-		camera.update(frameTime);
-		input.update(frameTime);
+		float delta = (float)frameTime / 1000.0f;
+		camera.update(delta);
+		input.update(delta);
 
 		float aspect = shRenderer.getAspectRatio();
 
@@ -120,7 +121,7 @@ void ShAPP::run()
 			int frameIndex = shRenderer.getFrameIndex();
 			FrameInfo frameInfo{
 				frameIndex,
-				frameTime,
+				delta,
 				lightUpdate,
 				commandBuffer,
 				camera,
