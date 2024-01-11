@@ -92,8 +92,8 @@ void ShAPP::run()
 	camera.type = Camera2::CameraType::firstperson;
 	camera.flipY = true;
 	camera.movementSpeed = 2.0f;
-	camera.setPosition(glm::vec3(0.0f, 0.0f, -1.0f));
-	camera.setRotation(glm::vec3(-0.0f, 0.0f, 0.0f));
+	camera.setPosition(glm::vec3(0.28f, 0.82f, -2.6f));
+	camera.setRotation(glm::vec3(-40.0f, 6.0f, 0.0f));
 	camera.setPerspective(60.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 256.0f);
 
 	Input input(camera, *this);
@@ -107,8 +107,8 @@ void ShAPP::run()
 		auto frameTime =
 			std::chrono::duration<double, std::milli>(newTime - currentTime).count();
 		currentTime = newTime;
-		DWORD sleeptime = (DWORD)((33.0 - (double)frameTime) / 1000.0);
-		Sleep(sleeptime);
+		DWORD sleeptime = (DWORD)((33.0 - (double)frameTime));
+		//Sleep(sleeptime);
 
 		float delta = (float)frameTime / 1000.0f;
 		camera.update(delta);
@@ -167,6 +167,8 @@ void ShAPP::run()
 }
 
 const std::string MODEL_PATH = "models/buster_drone/busterDrone.gltf";
+//const std::string MODEL_PATH = "models/sponza/sponza.gltf";
+//const std::string MODEL_PATH = "models/cerberus/cerberus.gltf";
 
 void ShAPP::loadGameObjects() 
 {
@@ -205,8 +207,8 @@ void ShAPP::loadGameObjects()
 
 	std::vector<glm::vec3> lightColors{
 		{1.f, 1.f, 1.f},
-		//{1.f, .1f, .1f},
-		//{.1f, .1f, 1.f},
+		{1.f, .1f, .1f},
+		{.1f, .1f, 1.f},
 		//{.1f, 1.f, .1f},
 		//{1.f, 1.f, .1f},
 		//{.1f, 1.f, 1.f},

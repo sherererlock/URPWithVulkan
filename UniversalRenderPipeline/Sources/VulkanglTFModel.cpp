@@ -1098,6 +1098,11 @@ void vkglTF::Model::loadMaterials(tinygltf::Model &gltfModel)
 		if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end()) {
 			material.emissiveTexture = getTexture(gltfModel.textures[mat.additionalValues["emissiveTexture"].TextureIndex()].source);
 		}
+		else
+		{
+			material.emissiveTexture = &emptyTexture;
+		}
+
 		if (mat.additionalValues.find("occlusionTexture") != mat.additionalValues.end()) {
 			material.occlusionTexture = getTexture(gltfModel.textures[mat.additionalValues["occlusionTexture"].TextureIndex()].source);
 		}

@@ -57,6 +57,7 @@ SamplerState samplerEmissive : register(s3, space1);
 float4 main(VSOutput input) :SV_TARGET
 {
     float3 albedo = textureColor.Sample(samplerColor, input.UV).rgb;
+    //float3 emmisive = textureEmissive.Sample(samplerEmissive, input.UV).rgb;
     albedo = pow(albedo, float3(2.2f, 2.2f, 2.2f));
     
     float3 normal = calculateNormal(input);
