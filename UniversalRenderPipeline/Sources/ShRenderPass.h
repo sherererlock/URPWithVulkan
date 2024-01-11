@@ -20,7 +20,7 @@ struct FrameBufferAttachment
 		vkDestroySampler(device, sampler, nullptr);
 	}
 
-	VkDescriptorImageInfo descriptor()
+	VkDescriptorImageInfo descriptor() const
 	{
 		return VkDescriptorImageInfo{ sampler, view, layout };
 	}
