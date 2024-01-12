@@ -40,18 +40,7 @@ float3 F_SchlickR(float cosTheta, float3 F0, float roughness)
     return F0 + (max(float3(smothness, smothness, smothness), F0) - F0) * pow(1.0f - cosTheta, 5.0f);
 }
 
-float3 calculateNormal(VSOutput input)
-{
-    float3 tangentNormal = textureNormal.Sample(samplerNormal, input.UV).rgb * 2.0f - float3(1.0f, 1.0f, 1.0f);
-    
-    float3 N = normalize(input.Normal);
-    float3 T = normalize(input.Tangent);
-    float3 B = normalize(cross(N, T));
-    float3x3 TBN = transpose(float3x3(T, B, N));
-    return normalize( mul(TBN, tangentNormal) );
-}
-
-float3 DirectLighting(float3 n, float3 v, float3 albedo, float3 F0, float roughness, float metallic, float shadow, VSOutput input)
+float3 DirectLighting(float3 n, float3 v, float3 albedo, float3 F0, float roughness, float metallic, float shadow, float3 worldPos)
 {
     float ndotv = clamp(dot(n, v), 0.0, 1.0);
     float3 f = fresnelSchlick(ndotv, F0);
@@ -59,7 +48,7 @@ float3 DirectLighting(float3 n, float3 v, float3 albedo, float3 F0, float roughn
     
     for (int i = 0; i < ubo.numLights; i++)
     {
-        float3 l = normalize(ubo.pointLights[i].position.xyz - input.WorldPos);
+        float3 l = normalize(ubo.pointLights[i].position.xyz - worldPos);
         float3 lightColor = ubo.pointLights[i].color.rgb;
         float ndotl = dot(n, l);
         

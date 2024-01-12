@@ -70,14 +70,14 @@ SamplerState samplerShadow : register(s5, space1);
 #include "common.hlsl"
 #include "Lighting.hlsl"
 
-float4 main(VSOutput input)
+float4 main(VSOutput input) : SV_TARGET
 {
     float2 uv = input.UV;
 
     float4 gbuffer1 = textureColor.Sample(samplerColor, uv);
     float4 gbuffer2 = textureNormal.Sample(samplerNormal, uv);
     float4 gbuffer3 = textureEmissive.Sample(samplerEmissive, uv);
-    float depth = textureDepth.Sample(samplerDepth, uv);
+    float depth = textureDepth.Sample(samplerDepth, uv).r;
     
     float3 albedo = pow(gbuffer1.rgb, float3(2.2f, 2.2f, 2.2f));
     float3 normal = normalize(gbuffer2.rgb * 2.0f - 1.0f);
@@ -88,7 +88,7 @@ float4 main(VSOutput input)
     
     float3 F0 = lerp(float3(0.4f, 0.4f, 0.4f), albedo, metallic);
     
-    float ldepth = linearDepth(depth, ubo.camereInfo.x, ubo.camereInfo.y).r;
+    float ldepth = linearDepth(depth, ubo.camereInfo.x, ubo.camereInfo.y);
     float3 worldPos = ReconstructWorldPos(uv, ldepth, cameraubo.leftTop.xyz, cameraubo.left2Right.xyz, cameraubo.top2bottom.xyz, ubo.camereInfo.z);
     
     float3 biasPos = worldPos + normal * shadowUbo.shadowBias.x;
@@ -96,7 +96,7 @@ float4 main(VSOutput input)
     float shadow = getShadow(shadowCoords, textureShadow, samplerShadow);
     
     float3 viewDir = normalize(ubo.viewPos.xyz - worldPos);
-    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, shadow, input);
+    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, shadow, worldPos);
     
     Lo = pow(Lo, float3(0.45f, 0.45f, 0.45f));
     

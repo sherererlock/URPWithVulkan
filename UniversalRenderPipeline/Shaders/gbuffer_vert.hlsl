@@ -27,9 +27,10 @@ struct GlobalUBO
 {
     float4x4 projection;
     float4x4 view;
-    float4x4 inView;
     float4 ambientLightColor;
     float4 viewPos;
+    float4 camereInfo;
+    float4 size;
     PointLight pointLights[10];
     int numLights;
 };

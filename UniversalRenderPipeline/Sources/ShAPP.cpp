@@ -133,8 +133,6 @@ void ShAPP::run()
 
 			ubo.projection = camera.matrices.perspective;
 			ubo.view = camera.matrices.view;
-			ubo.inverseView = glm::inverse(camera.matrices.view);
-			//ubo.viewPos = ubo.inverseView[3];
 			ubo.viewPos = camera.viewPos;
 
 			pointLightSystem.update(frameInfo, ubo);

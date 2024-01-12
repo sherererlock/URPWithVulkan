@@ -7,27 +7,32 @@ BlitRenderSystem::BlitRenderSystem(ShDevice& device, VkRenderPass renderPass, st
 	createPipeline(renderPass);
 }
 
-void BlitRenderSystem::renderGameObjects(FrameInfo& frameInfo)
+void BlitRenderSystem::renderGameObjects(FrameInfo& frameInfo, const std::vector<VkDescriptorSet>& descriptorSets)
 {
 	lvePipeline->bind(frameInfo.commandBuffer);
 
-	vkCmdBindDescriptorSets(
-		frameInfo.commandBuffer,
-		VK_PIPELINE_BIND_POINT_GRAPHICS,
-		pipelineLayout,
-		0,
-		1,
-		&frameInfo.globalDescriptorSet,
-		0,	
-		nullptr);
+	for (int i = 0; i < descriptorSets.size(); i++)
+	{
+		vkCmdBindDescriptorSets(
+			frameInfo.commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipelineLayout,
+			i,
+			1,
+			&descriptorSets[i],
+			0,
+			nullptr);
+	}
+
+	vkCmdDraw(frameInfo.commandBuffer, 3, 1, 0, 0);
 }
 
-std::vector<VkVertexInputBindingDescription> getEmptyInputBinding()
+static std::vector<VkVertexInputBindingDescription> getEmptyInputBinding()
 {
 	return {};
 }
 
-std::vector<VkVertexInputAttributeDescription> getEmptyAttributeDescriptions()
+static std::vector<VkVertexInputAttributeDescription> getEmptyAttributeDescriptions()
 {
 	return {};
 }
@@ -49,5 +54,14 @@ void BlitRenderSystem::createPipeline(VkRenderPass renderPass)
 
 void BlitRenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout>& setLayouts)
 {
-	RenderSystem::createPipelineLayout(setLayouts);
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
+	pipelineLayoutInfo.pSetLayouts = setLayouts.data();
+	pipelineLayoutInfo.pushConstantRangeCount = 0;
+	pipelineLayoutInfo.pPushConstantRanges = nullptr;
+	if (vkCreatePipelineLayout(lveDevice.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
+		VK_SUCCESS) {
+		throw std::runtime_error("failed to create pipeline layout!");
+	}
 }
