@@ -111,6 +111,12 @@
     <ClCompile Include="Sources\LightingPass.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Sources\BlitPass.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Sources\BlitRenderSystem.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\ShSwapchain.h">
@@ -183,6 +189,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Sources\LightingPass.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\BlitPass.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Sources\BlitRenderSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

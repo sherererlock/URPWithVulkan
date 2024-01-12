@@ -137,7 +137,6 @@ void ShAPP::run()
 			//ubo.viewPos = ubo.inverseView[3];
 			ubo.viewPos = camera.viewPos;
 
-			
 			pointLightSystem.update(frameInfo, ubo);
 
 			uboBuffers[frameIndex]->writeToBuffer(&ubo);

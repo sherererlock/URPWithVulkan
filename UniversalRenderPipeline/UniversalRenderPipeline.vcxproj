@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Sources\BlitRenderSystem.cpp" />
+    <ClCompile Include="Sources\BlitPass.cpp" />
     <ClCompile Include="Sources\LightingPass.cpp" />
     <ClCompile Include="Sources\BasePass.cpp" />
     <ClCompile Include="Sources\ShadowRenderSystem.cpp" />
@@ -53,6 +55,8 @@
     <ClCompile Include="Sources\VulkanglTFModel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Sources\BlitRenderSystem.h" />
+    <ClInclude Include="Sources\BlitPass.h" />
     <ClInclude Include="Sources\LightingPass.h" />
     <ClInclude Include="Sources\BasePass.h" />
     <ClInclude Include="Sources\camera.hpp" />
