@@ -9,6 +9,13 @@ struct VSOutput
     [[vk::location(4)]] float4 ShadowCoords : TEXCOORD2;
 };
 
+struct FSOutput
+{
+    float4 albedo : SV_TARGET0;
+    float4 normal : SV_TARGET1;
+    float4 emmisive : SV_TARGET2;
+};
+
 struct PointLight
 {
     float4 position; // ignore w
@@ -51,32 +58,31 @@ SamplerState samplerRoughness : register(s2, space1);
 Texture2D textureEmissive : register(t3, space1);
 SamplerState samplerEmissive : register(s3, space1);
 
-Texture2D textureShadow : register(t1, space2);
-SamplerState samplerShadow : register(s1, space2);
-
-#include "shadow.hlsl"
-#include "Lighting.hlsl"
-
-float4 main(VSOutput input) :SV_TARGET
+float3 calculateNormal(VSOutput input)
 {
-    float3 albedo = textureColor.Sample(samplerColor, input.UV).rgb;
-    //float3 emmisive = textureEmissive.Sample(samplerEmissive, input.UV).rgb;
-    albedo = pow(albedo, float3(2.2f, 2.2f, 2.2f));
+    float3 tangentNormal = textureNormal.Sample(samplerNormal, input.UV).rgb * 2.0f - float3(1.0f, 1.0f, 1.0f);
     
+    float3 N = normalize(input.Normal);
+    float3 T = normalize(input.Tangent);
+    float3 B = normalize(cross(N, T));
+    float3x3 TBN = transpose(float3x3(T, B, N));
+    return normalize(mul(TBN, tangentNormal));
+}
+
+FSOutput main(VSOutput input) : SV_TARGET
+{
+    FSOutput output;
+    
+    float3 albedo = textureColor.Sample(samplerColor, input.UV).rgb;
+    float3 emmisive = textureEmissive.Sample(samplerEmissive, input.UV).rgb;
     float3 normal = calculateNormal(input);
     float2 rm = textureRoughness.Sample(samplerRoughness, input.UV).gb;
     float roughness = rm.x;
     float metallic = rm.y;
     
-    float3 viewDir = normalize(ubo.viewPos.xyz - input.WorldPos);
-    
-    float3 F0 = float3(0.04f, 0.04f, 0.04f);
-    F0 = lerp(F0, albedo, metallic);
-    
-    float shadow = getShadow(input.ShadowCoords, textureShadow, samplerShadow);
-    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, shadow, input);
-   
-    Lo = pow(Lo, float3(0.45f, 0.45f, 0.45f));
-    return float4(Lo, 1.0f);
+    output.albedo = float4(albedo, roughness);
+    output.normal = float4(normal * 0.5f + float3(0.5f, 0.5f, 0.5f), metallic);
+    output.emmisive = float4(emmisive, 1.0f);
 
+    return output;
 }
