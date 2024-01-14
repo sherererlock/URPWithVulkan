@@ -240,20 +240,23 @@ void ShAPP::run()
 			CameraExtentUBO cameraubo{};
 
 			glm::mat view = camera.matrices.view;
-			glm::mat inverseView = glm::inverse(camera.matrices.view);
-			inverseView[0][3] = 0.0f;
-			inverseView[1][3] = 0.0f;
-			inverseView[2][3] = 0.0f;
+			view[3][0] = 0.0f;
+			view[3][1] = 0.0f;
+			view[3][2] = 0.0f;
+
+			glm::mat vp = camera.matrices.perspective * view;
+
+			glm::mat inversevp = glm::inverse(vp);
 
 			glm::vec4 lt = glm::vec4{ -1.0f, 1.0f, -1.0f, 1.0f };
 			glm::vec4 rt = glm::vec4{ 1.0f, 1.0f, -1.0f, 1.0f };
 			glm::vec4 lb = glm::vec4{ -1.0f, -1.0f, -1.0f, 1.0f };
 
-			cameraubo.leftTop = inverseView * lt;
-			glm::vec4 rtw = inverseView * rt;
-			glm::vec4 lbw = inverseView * lb;
-			cameraubo.left2Right = glm::normalize(rtw - cameraubo.leftTop);
-			cameraubo.top2bottom = glm::normalize(lbw - cameraubo.leftTop);
+			cameraubo.leftTop = inversevp * lt;
+			glm::vec4 rtw = inversevp * rt;
+			glm::vec4 lbw = inversevp * lb;
+			cameraubo.left2Right = (rtw - cameraubo.leftTop);
+			cameraubo.top2bottom = (lbw - cameraubo.leftTop);
 
 			pointLightSystem.update(frameInfo, ubo);
 
@@ -284,10 +287,10 @@ void ShAPP::run()
 
 			// order here matters
 			//simpleRenderSystem.renderGameObjects(frameInfo);
-			gltfRenderSystem.renderGameObjects(frameInfo);
-			//blitRenderSystem.renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] });
+			//gltfRenderSystem.renderGameObjects(frameInfo);
 
-			//pointLightSystem.render(frameInfo);
+			blitRenderSystem.renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] });
+			pointLightSystem.render(frameInfo);
 
 			shRenderer.endSwapChainRenderPass(commandBuffer);
 			shRenderer.endFrame();

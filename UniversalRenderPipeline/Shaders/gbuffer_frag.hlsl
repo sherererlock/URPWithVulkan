@@ -79,14 +79,9 @@ FSOutput main(VSOutput input) : SV_TARGET
     float roughness = rm.x;
     float metallic = rm.y;
     
-    albedo = float3(1, 0, 0);
     output.albedo = float4(albedo, roughness);
     output.normal = float4(normal * 0.5f + float3(0.5f, 0.5f, 0.5f), metallic);
     output.emmisive = float4(emmisive, 1.0f);
     
-    output.albedo = float4(albedo, 1.0f);
-    output.normal = float4(albedo, 1.0f);
-    output.emmisive = float4(albedo, 1.0f);
-
     return output;
 }

@@ -56,18 +56,39 @@
 19. basePass没有渲染出任何东西
 
     - GltfRenderSystem.createPipelineLayout传的是layouts的引用，添加了之后，使用到了base GltfRenderSystem中了
+    - depth的clear value被设置为了0，所以所有东西东渲染不上去
 
+20. lightingpass渲染颜色不对
 
+    - 物体的颜色不对
 
+      - inverseView的的第三行表示相机的位置，而不是第三列
 
+      - 没有乘以inverseProj
+      - 
 
+    - 背景也被上了颜色
 
+      clearvalue = (0.01, 0.01, 0.01, 1),各个位置的值都有意义，只能用0来clear
 
+21. 重建世界坐标出现问题
 
+    - 误区1：view的第三行也就是表示位置的行需要被置为0
+    - 误区2：千万不要忘记乘以inverseProj
+    - 误区3：left2right和top2bottom不需要normalize，因为uv已经是normalize过的值了
+    - 误区4：uv值的y值是反的，所以需要用1-uv.y
 
+22. shadow问题
 
+23. 光没画出来
 
+    depth被写为0了
 
+------
+
+### 低级失误
+
+1. F0的lerp居然写成了0.4f
 
 ------
 

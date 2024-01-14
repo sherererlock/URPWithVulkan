@@ -94,7 +94,9 @@ std::vector<VkClearValue> BasePass::GetClearValues() const
 {
     std::vector<VkClearValue> clearValues(4);
     for (VkClearValue& clearValue : clearValues)
-        clearValue.color = { 0.01f, 0.01f, 0.01f, 1.0f };
+        clearValue.color = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+    clearValues[3].depthStencil = { 1.0f, 0 };
 
     return clearValues;
 }
