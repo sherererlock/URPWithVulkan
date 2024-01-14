@@ -18,7 +18,7 @@ struct PipelineConfigInfo
 	VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
 	VkPipelineRasterizationStateCreateInfo rasterizationInfo;
 	VkPipelineMultisampleStateCreateInfo multisampleInfo;
-	VkPipelineColorBlendAttachmentState colorBlendAttachment;
+	std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
 	VkPipelineColorBlendStateCreateInfo colorBlendInfo;
 	VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
 	std::vector<VkDynamicState> dynamicStateEnables;
@@ -44,7 +44,7 @@ public:
 
 	typedef std::function<std::vector<VkVertexInputBindingDescription>()> getInputBinding;
 	typedef std::function<std::vector<VkVertexInputAttributeDescription>()> getInputAttribute;
-	static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, getInputBinding f1, getInputAttribute f2);
+	static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, getInputBinding f1, getInputAttribute f2, uint32_t colorBlendAttachmentCount = 1);
 	static void enableAlphaBlending(PipelineConfigInfo& configInfo);
 
 private:

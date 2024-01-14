@@ -14,12 +14,8 @@ std::vector<VkAttachmentDescription> BasePass::GetAttachmentDescriptions() const
     colorAttachmentDes.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     colorAttachmentDes.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-    VkFormat format = shDevice.findSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
-        VK_IMAGE_TILING_OPTIMAL,
-        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-
-    VkAttachmentDescription depthAttachmentDes;
-    depthAttachmentDes.format = format;
+    VkAttachmentDescription depthAttachmentDes{};
+    depthAttachmentDes.format = depth.format;
     depthAttachmentDes.samples = VK_SAMPLE_COUNT_1_BIT;
     depthAttachmentDes.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachmentDes.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -31,45 +27,62 @@ std::vector<VkAttachmentDescription> BasePass::GetAttachmentDescriptions() const
     return { colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, depthAttachmentDes };
 }
 
-std::vector<VkSubpassDescription> BasePass::GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs) const
+std::vector<VkSubpassDescription> BasePass::GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs, const VkAttachmentReference& depthRef) const
 {
-    VkSubpassDescription subpassDes;
+    VkSubpassDescription subpassDes{};
 
-    uint32_t colorCount = (uint32_t)(attachmentRefs.size() - 1);
     subpassDes.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpassDes.colorAttachmentCount = colorCount;
+    subpassDes.colorAttachmentCount = (uint32_t)(attachmentRefs.size());
     subpassDes.pColorAttachments = attachmentRefs.data();
-    subpassDes.pDepthStencilAttachment = &attachmentRefs[colorCount];
+    subpassDes.pDepthStencilAttachment = &depthRef;
 
     return {subpassDes};
 }
 
 std::vector<VkSubpassDependency> BasePass::GetSubpassDependencies() const
 {
-    std::array<VkSubpassDependency, 1> dependencies;
+    std::array<VkSubpassDependency, 2> dependencies;
 
-    dependencies[0].srcSubpass = 0;
-    dependencies[0].dstSubpass = VK_SUBPASS_EXTERNAL;
-    dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependencies[0].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    dependencies[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    dependencies[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[0].dstSubpass = 0;
+    dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-    return { dependencies[0] };
+    dependencies[1].srcSubpass = 0;
+    dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+    return { dependencies[0], dependencies[1] };
 }
 
-std::vector<VkAttachmentReference> BasePass::GetAttachmentRefs() const
+std::vector<VkAttachmentReference> BasePass::GetColorAttachmentRefs() const
 {
-    std::vector<VkAttachmentReference> colorRefs(4);
+    std::vector<VkAttachmentReference> colorRefs(3);
 
     for (int i = 0; i < colorRefs.size(); i++)
     {
         colorRefs[i].attachment = i;
-        colorRefs[i].layout = i == int(colorRefs.size() - 1) ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        colorRefs[i].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     }
 
     return colorRefs;
+}
+
+VkAttachmentReference BasePass::GetDepthAttachmentRef() const
+{
+    VkAttachmentReference depthRef;
+
+    depthRef.attachment = 3;
+    depthRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    return depthRef;
 }
 
 std::vector<VkImageView> BasePass::GetImageViews() const
@@ -81,10 +94,7 @@ std::vector<VkClearValue> BasePass::GetClearValues() const
 {
     std::vector<VkClearValue> clearValues(4);
     for (VkClearValue& clearValue : clearValues)
-    {
-        clearValue.color = { 0.0f, 0.0f, 0.0f, 1.0f };
-        clearValue.depthStencil = { 1.0f, 0 };
-    }
+        clearValue.color = { 0.01f, 0.01f, 0.01f, 1.0f };
 
     return clearValues;
 }

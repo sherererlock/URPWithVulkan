@@ -22,7 +22,7 @@ std::vector<VkAttachmentDescription> ShadowPass::GetAttachmentDescriptions() con
     return { depthAttachment };
 }
 
-std::vector<VkSubpassDescription> ShadowPass::GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs) const
+std::vector<VkSubpassDescription> ShadowPass::GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs, const VkAttachmentReference& depthRef) const
 {
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -56,13 +56,22 @@ std::vector<VkSubpassDependency> ShadowPass::GetSubpassDependencies() const
     return { dependencies[0], dependencies[1] };
 }
 
-std::vector<VkAttachmentReference> ShadowPass::GetAttachmentRefs() const
+std::vector<VkAttachmentReference> ShadowPass::GetColorAttachmentRefs() const
 {
     VkAttachmentReference attachmentRef;
     attachmentRef.attachment = 0;
     attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     return {attachmentRef};
+}
+
+VkAttachmentReference ShadowPass::GetDepthAttachmentRef() const
+{
+    VkAttachmentReference attachmentRef;
+    attachmentRef.attachment = 0;
+    attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    return attachmentRef;
 }
 
 std::vector<VkImageView> ShadowPass::GetImageViews() const

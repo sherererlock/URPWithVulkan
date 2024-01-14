@@ -7,9 +7,10 @@ class GltfRenderSystem : public RenderSystem
 {
 private:
 	ShadowRenderSystem* shadowRenderSystem;
+	uint32_t colorBlendAttachmentCount;
 
 public:
-	GltfRenderSystem(ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader, ShadowRenderSystem* rendersystem = nullptr);
+	GltfRenderSystem(ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader, ShadowRenderSystem* rendersystem = nullptr, uint32_t colorBlendAttachmentCount = 1);
 	virtual ~GltfRenderSystem() {}
 
 	virtual void renderGameObjects(FrameInfo& frameInfo) override;

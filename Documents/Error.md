@@ -37,15 +37,44 @@
 
     - 模型加载时将y被取反，但是camera的y没有被取反, 最终采取的方式，camera取反，模型加载时y不动
     - tbn的计算在hlsl下需要transpose
-    
-    
-    
-    
-    
-    ------
-    
-    # c++
-    
-    1. 在基类的构造函数中调用虚函数，链接时报错找不到实现
-    
-       当在构造基类部分时，派生类还没被完全创建。即当A::A()执行时，B类对象还没被完全创建，此时它被当成一个A对象，而不是B对象，因此Function()绑定的是A的Function()
+
+15. basePass创建renderPass时由于attachment的finalLayout与attachmentRef的layout混淆导致创建失败
+
+    - attachmentRef中的layout是在subpass执行写入时使用的layout，不能说shader read相关的layout
+    - final layout则是subpass执行完毕之后转换的layout
+
+16. pipeline中colorAttachmentBlendState数量应该与render pass中的color attachment数量一致
+
+17. pointLightSystem没有渲染到gbuffer上
+
+    shader没有重写
+
+18. basePass写出的colorAttachment背景是红色
+
+    clearvalue中的color和depth共用同一内存空间，不能同时赋值
+
+19. basePass没有渲染出任何东西
+
+    - GltfRenderSystem.createPipelineLayout传的是layouts的引用，添加了之后，使用到了base GltfRenderSystem中了
+
+
+
+
+
+
+
+
+
+
+
+
+
+------
+
+# c++
+
+1. 在基类的构造函数中调用虚函数，链接时报错找不到实现
+
+   当在构造基类部分时，派生类还没被完全创建。即当A::A()执行时，B类对象还没被完全创建，此时它被当成一个A对象，而不是B对象，因此Function()绑定的是A的Function()
+   
+2. 创建对象是，记得对象名后面跟{},表示初始化值，如果明确初始化，则值是未知的

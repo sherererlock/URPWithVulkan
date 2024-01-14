@@ -17,8 +17,9 @@ ShRenderPass::~ShRenderPass()
 void ShRenderPass::createRenderPass()
 {
     auto attachments = GetAttachmentDescriptions();
-    auto attachmentRefs = GetAttachmentRefs();
-    auto subpassdes = GetSubpassDescriptions(attachmentRefs);
+    auto attachmentRefs = GetColorAttachmentRefs();
+    auto depthRef = GetDepthAttachmentRef();
+    auto subpassdes = GetSubpassDescriptions(attachmentRefs, depthRef);
     auto subpassdens = GetSubpassDependencies();
 
     VkRenderPassCreateInfo renderPassInfo = {};

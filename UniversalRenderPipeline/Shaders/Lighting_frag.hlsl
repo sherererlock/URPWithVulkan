@@ -46,25 +46,25 @@ struct ShadowUBO
     float4 shadowBias; // (normalbias, w, 0, 0)
 };
 
-cbuffer shadowUbo : register(b3)
+cbuffer shadowUbo : register(b2)
 {
     ShadowUBO shadowUbo;
 }
 
-Texture2D textureColor : register(t1, space1);
-SamplerState samplerColor : register(s1, space1);
+Texture2D textureColor : register(t0, space1);
+SamplerState samplerColor : register(s0, space1);
 
-Texture2D textureNormal : register(t2, space1);
-SamplerState samplerNormal : register(s2, space1);
+Texture2D textureNormal : register(t1, space1);
+SamplerState samplerNormal : register(s1, space1);
 
-Texture2D textureEmissive : register(t3, space1);
-SamplerState samplerEmissive : register(s3, space1);
+Texture2D textureEmissive : register(t2, space1);
+SamplerState samplerEmissive : register(s2, space1);
 
-Texture2D textureDepth : register(t4, space1);
-SamplerState samplerDepth : register(s4, space1);
+Texture2D textureDepth : register(t3, space1);
+SamplerState samplerDepth : register(s3, space1);
 
-Texture2D textureShadow : register(t5, space1);
-SamplerState samplerShadow : register(s5, space1);
+Texture2D textureShadow : register(t4, space1);
+SamplerState samplerShadow : register(s4, space1);
 
 #include "shadow.hlsl"
 #include "common.hlsl"

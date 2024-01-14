@@ -4,7 +4,10 @@
 #include <cassert>
 #include <chrono>
 #include <stdexcept>
+#include <iostream>
 #include <windows.h>
+
+
 // libs
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -22,10 +25,22 @@
 #include "InputController.h"
 #include "ShadowPass.h"
 #include "ShadowRenderSystem.h"
+#include "BasePass.h"
+#include "LightingPass.h"
+#include "BlitPass.h"
+#include "BlitRenderSystem.h"
+
 
 #define MAX_SET_NUM 20
 #define MAX_UNIFORM_BUFFER_NUM 20
 #define MAX_SAMPLER_BUFFER_NUM 20
+
+struct CameraExtentUBO
+{
+	glm::vec4 leftTop;
+	glm::vec4 left2Right;
+	glm::vec4 top2bottom;
+};
 
 ShAPP::ShAPP() {
 	globalPool =
@@ -71,6 +86,9 @@ void ShAPP::run()
 	ShadowRenderSystem shadowRenderSystem{ shDevice, shadowPass.getRenderPass(), "shaders/spv/shadow_vert.hlsl.spv", "shaders/spv/shadow_frag.hlsl.spv", shadowPass.getShadowMapImageInfo()};
 	shadowRenderSystem.setupDescriptorSet(*globalPool);
 
+	BasePass basePass{ shDevice, WIDTH, HEIGHT };
+	LightingPass lightPass{ shDevice, WIDTH, HEIGHT, shRenderer.getFormat()};
+
 	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout()};
 
 	//SimpleRenderSystem simpleRenderSystem{
@@ -82,11 +100,92 @@ void ShAPP::run()
 	//simpleRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
 
 	GltfRenderSystem gltfRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(), setlayouts, "shaders/spv/pbr_vert.hlsl.spv", "shaders/spv/pbr_frag.hlsl.spv", &shadowRenderSystem };
+	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_vert.hlsl.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 3};
+
+	auto lightingSetLayout0 =
+		ShDescriptorSetLayout::Builder(shDevice)
+		.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.build();
+
+	auto lightingSetLayout1 =
+		ShDescriptorSetLayout::Builder(shDevice)
+		.addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.build();
+
+	std::vector<std::unique_ptr<ShBuffer>> cameraBuffers(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
+	for (int i = 0; i < cameraBuffers.size(); i++)
+	{
+		cameraBuffers[i] = std::make_unique<ShBuffer>(
+			shDevice,
+			sizeof(CameraExtentUBO),
+			1,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+		cameraBuffers[i]->map();
+	}
+
+	std::vector<VkDescriptorSet> lightDescriptorSets(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
+	auto& shadowBuffer = shadowRenderSystem.getBuffers();
+	for (int i = 0; i < lightDescriptorSets.size(); i++)
+	{
+		auto cameraBufferInfo = cameraBuffers[i]->descriptorInfo();
+		auto glboalBufferInfo = uboBuffers[i]->descriptorInfo();
+		auto shadowBufferInfo = shadowBuffer[i]->descriptorInfo();
+		ShDescriptorWriter(*lightingSetLayout0, *globalPool)
+			.writeBuffer(0, &glboalBufferInfo)
+			.writeBuffer(1, &cameraBufferInfo)
+			.writeBuffer(2, &shadowBufferInfo)
+			.build(lightDescriptorSets[i]);
+	}
+
+	std::vector<VkDescriptorSet> imageDescriptorSets(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
+	VkDescriptorImageInfo colorImageInfo = basePass.GetAlbedo();
+	VkDescriptorImageInfo normalImageInfo = basePass.GetNormal();
+	VkDescriptorImageInfo emissiveImageInfo = basePass.GetEmissive();
+	VkDescriptorImageInfo depthImageInfo = basePass.GetDepth();
+	VkDescriptorImageInfo shadowImageInfo = shadowPass.getShadowMapImageInfo();
+	for (int i = 0; i < imageDescriptorSets.size(); i++)
+	{
+		
+		ShDescriptorWriter(*lightingSetLayout1, *globalPool)
+			.writeImage(0, &colorImageInfo)
+			.writeImage(1, &normalImageInfo)
+			.writeImage(2, &emissiveImageInfo)
+			.writeImage(3, &depthImageInfo)
+			.writeImage(4, &shadowImageInfo)
+			.build(imageDescriptorSets[i]);
+	}
+
+	std::vector<VkDescriptorSetLayout> lightSetLayouts { lightingSetLayout0->getDescriptorSetLayout(), lightingSetLayout1->getDescriptorSetLayout()};
+	BlitRenderSystem lightingRenderSystem{ shDevice, lightPass.getRenderPass(), lightSetLayouts,  "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv" };
 
 	PointLightSystem pointLightSystem{
 		shDevice,
 		shRenderer.getSwapChainRenderPass(),
 		globalSetLayout->getDescriptorSetLayout() };
+
+	auto blitSetLayout =
+		ShDescriptorSetLayout::Builder(shDevice)
+		.addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.build();
+
+	std::vector<VkDescriptorSetLayout> blitSetLayouts{ blitSetLayout->getDescriptorSetLayout()};
+	BlitRenderSystem blitRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(), blitSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/blit_frag.hlsl.spv" };
+
+	std::vector<VkDescriptorSet> blitDescriptorSets(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
+	auto lightingColorImageInfo = lightPass.getColor();
+	for (int i = 0; i < imageDescriptorSets.size(); i++)
+	{
+		ShDescriptorWriter(*blitSetLayout, *globalPool)
+			.writeImage(0, &lightingColorImageInfo)
+			.build(blitDescriptorSets[i]);
+	}
 
 	Camera2 camera{};
 	camera.type = Camera2::CameraType::firstperson;
@@ -107,8 +206,9 @@ void ShAPP::run()
 		auto frameTime =
 			std::chrono::duration<double, std::milli>(newTime - currentTime).count();
 		currentTime = newTime;
-		DWORD sleeptime = (DWORD)((33.0 - (double)frameTime));
-		//Sleep(sleeptime);
+		auto sleeptime = 33.0f - frameTime;
+		sleeptime = sleeptime > 0.0f ? sleeptime : 0.0f;
+		Sleep((DWORD)sleeptime);
 
 		float delta = (float)frameTime / 1000.0f;
 		camera.update(delta);
@@ -134,11 +234,34 @@ void ShAPP::run()
 			ubo.projection = camera.matrices.perspective;
 			ubo.view = camera.matrices.view;
 			ubo.viewPos = camera.viewPos;
+			ubo.size = glm::vec4(WIDTH, HEIGHT, 1.0f / (float)WIDTH, 1.0f / (float) HEIGHT);
+			ubo.camereInfo = glm::vec4(camera.getNearClip(), camera.getFarClip(), 1.0f / camera.getNearClip(), 1.0f / camera.getFarClip());
+
+			CameraExtentUBO cameraubo{};
+
+			glm::mat view = camera.matrices.view;
+			glm::mat inverseView = glm::inverse(camera.matrices.view);
+			inverseView[0][3] = 0.0f;
+			inverseView[1][3] = 0.0f;
+			inverseView[2][3] = 0.0f;
+
+			glm::vec4 lt = glm::vec4{ -1.0f, 1.0f, -1.0f, 1.0f };
+			glm::vec4 rt = glm::vec4{ 1.0f, 1.0f, -1.0f, 1.0f };
+			glm::vec4 lb = glm::vec4{ -1.0f, -1.0f, -1.0f, 1.0f };
+
+			cameraubo.leftTop = inverseView * lt;
+			glm::vec4 rtw = inverseView * rt;
+			glm::vec4 lbw = inverseView * lb;
+			cameraubo.left2Right = glm::normalize(rtw - cameraubo.leftTop);
+			cameraubo.top2bottom = glm::normalize(lbw - cameraubo.leftTop);
 
 			pointLightSystem.update(frameInfo, ubo);
 
 			uboBuffers[frameIndex]->writeToBuffer(&ubo);
 			uboBuffers[frameIndex]->flush();
+
+			cameraBuffers[frameIndex]->writeToBuffer(&cameraubo);
+			cameraBuffers[frameIndex]->flush();
 
 			// shadow pass
 			shadowRenderSystem.setupLight(pointLightGO, frameIndex);
@@ -146,14 +269,25 @@ void ShAPP::run()
 			shadowRenderSystem.renderGameObjects(frameInfo);
 			shadowPass.endRenderPass(commandBuffer);
 
+			// base pass
+			basePass.beginRenderPass(commandBuffer);
+			baseRenderSystem.renderGameObjects(frameInfo);
+			basePass.endRenderPass(commandBuffer);
+
+			// lighting pass
+			lightPass.beginRenderPass(commandBuffer);
+			lightingRenderSystem.renderGameObjects(frameInfo, { lightDescriptorSets[frameIndex], imageDescriptorSets[frameIndex] });
+			lightPass.endRenderPass(commandBuffer);
+
 			// render
 			shRenderer.beginSwapChainRenderPass(commandBuffer);
 
 			// order here matters
 			//simpleRenderSystem.renderGameObjects(frameInfo);
 			gltfRenderSystem.renderGameObjects(frameInfo);
+			//blitRenderSystem.renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] });
 
-			pointLightSystem.render(frameInfo);
+			//pointLightSystem.render(frameInfo);
 
 			shRenderer.endSwapChainRenderPass(commandBuffer);
 			shRenderer.endFrame();

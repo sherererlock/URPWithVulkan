@@ -1516,6 +1516,9 @@ void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t
 {
 	if (node->mesh) {
 		for (Primitive* primitive : node->mesh->primitives) {
+			if (primitive->indexCount != 18)
+				continue;
+
 			bool skip = false;
 			const vkglTF::Material& material = primitive->material;
 			if (renderFlags & RenderFlags::RenderOpaqueNodes) {

@@ -132,7 +132,7 @@ void ShPipeline::bind(VkCommandBuffer commandBuffer) {
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 }
 
-void ShPipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, getInputBinding f1, getInputAttribute f2) {
+void ShPipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, getInputBinding f1, getInputAttribute f2, uint32_t colorBlendAttachmentCount) {
 	configInfo.inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	configInfo.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	configInfo.inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
@@ -149,7 +149,7 @@ void ShPipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, getIn
 	configInfo.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
 	configInfo.rasterizationInfo.lineWidth = 1.0f;
 	configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
-	configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	configInfo.rasterizationInfo.depthBiasEnable = VK_FALSE;
 	configInfo.rasterizationInfo.depthBiasConstantFactor = 0.0f;  // Optional
 	configInfo.rasterizationInfo.depthBiasClamp = 0.0f;           // Optional
@@ -163,22 +163,26 @@ void ShPipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, getIn
 	configInfo.multisampleInfo.alphaToCoverageEnable = VK_FALSE;  // Optional
 	configInfo.multisampleInfo.alphaToOneEnable = VK_FALSE;       // Optional
 
-	configInfo.colorBlendAttachment.colorWriteMask =
+	VkPipelineColorBlendAttachmentState colorBlendAttachment;
+	colorBlendAttachment.colorWriteMask =
 		VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
 		VK_COLOR_COMPONENT_A_BIT;
-	configInfo.colorBlendAttachment.blendEnable = VK_FALSE;
-	configInfo.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;   // Optional
-	configInfo.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;  // Optional
-	configInfo.colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;              // Optional
-	configInfo.colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;   // Optional
-	configInfo.colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;  // Optional
-	configInfo.colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;              // Optional
+	colorBlendAttachment.blendEnable = VK_FALSE;
+	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;   // Optional
+	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;  // Optional
+	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;              // Optional
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;   // Optional
+	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;  // Optional
+	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;              // Optional
+
+	for (int i = 0; i < colorBlendAttachmentCount; i++)
+		configInfo.colorBlendAttachments.push_back(colorBlendAttachment);
 
 	configInfo.colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	configInfo.colorBlendInfo.logicOpEnable = VK_FALSE;
 	configInfo.colorBlendInfo.logicOp = VK_LOGIC_OP_COPY;  // Optional
-	configInfo.colorBlendInfo.attachmentCount = 1;
-	configInfo.colorBlendInfo.pAttachments = &configInfo.colorBlendAttachment;
+	configInfo.colorBlendInfo.attachmentCount = (uint32_t)configInfo.colorBlendAttachments.size();
+	configInfo.colorBlendInfo.pAttachments = configInfo.colorBlendAttachments.data();
 	configInfo.colorBlendInfo.blendConstants[0] = 0.0f;  // Optional
 	configInfo.colorBlendInfo.blendConstants[1] = 0.0f;  // Optional
 	configInfo.colorBlendInfo.blendConstants[2] = 0.0f;  // Optional
@@ -206,15 +210,19 @@ void ShPipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, getIn
 	configInfo.attributeDescriptions = f2();
 }
 
-void ShPipeline::enableAlphaBlending(PipelineConfigInfo& configInfo) {
-	configInfo.colorBlendAttachment.blendEnable = VK_TRUE;
-	configInfo.colorBlendAttachment.colorWriteMask =
-		VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-		VK_COLOR_COMPONENT_A_BIT;
-	configInfo.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	configInfo.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	configInfo.colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	configInfo.colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	configInfo.colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	configInfo.colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+void ShPipeline::enableAlphaBlending(PipelineConfigInfo& configInfo)
+{
+	for(int i = 0; i < configInfo.colorBlendAttachments.size(); i ++)
+	{
+		configInfo.colorBlendAttachments[i].blendEnable = VK_TRUE;
+		configInfo.colorBlendAttachments[i].colorWriteMask =
+			VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+			VK_COLOR_COMPONENT_A_BIT;
+		configInfo.colorBlendAttachments[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+		configInfo.colorBlendAttachments[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		configInfo.colorBlendAttachments[i].colorBlendOp = VK_BLEND_OP_ADD;
+		configInfo.colorBlendAttachments[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+		configInfo.colorBlendAttachments[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+		configInfo.colorBlendAttachments[i].alphaBlendOp = VK_BLEND_OP_ADD;
+	}
 }

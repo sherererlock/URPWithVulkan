@@ -11,9 +11,9 @@ private:
 protected:
 	// Í¨¹ý ShRenderPass ¼Ì³Ð
 	std::vector<VkAttachmentDescription> GetAttachmentDescriptions() const override;
-	std::vector<VkSubpassDescription> GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs) const override;
+	std::vector<VkSubpassDescription> GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs, const VkAttachmentReference& depthRef) const override;
 	std::vector<VkSubpassDependency> GetSubpassDependencies() const override;
-	std::vector<VkAttachmentReference> GetAttachmentRefs() const override;
+	std::vector<VkAttachmentReference> GetColorAttachmentRefs() const override;
 	std::vector<VkImageView> GetImageViews() const override;
 	std::vector<VkClearValue> GetClearValues() const override;
 

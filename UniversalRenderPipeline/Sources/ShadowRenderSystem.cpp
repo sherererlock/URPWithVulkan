@@ -6,7 +6,7 @@ ShadowRenderSystem::ShadowRenderSystem(ShDevice& device, VkRenderPass renderPass
 	setLayout = ShDescriptorSetLayout::Builder(lveDevice).addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT).build();
 	lightSetLayout = ShDescriptorSetLayout::Builder(lveDevice).
 		addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT).
-		addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT|VK_SHADER_STAGE_FRAGMENT_BIT).build();
+		addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT).build();
 
 	std::vector<VkDescriptorSetLayout> setlayouts{ setLayout->getDescriptorSetLayout()};
 	createPipelineLayout(setlayouts);

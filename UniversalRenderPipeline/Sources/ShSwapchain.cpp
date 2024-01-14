@@ -443,5 +443,7 @@ VkResult ShSwapchain::submitCommandBuffers(const VkCommandBuffer* buffers, uint3
 
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
+    vkQueueWaitIdle(device.presentQueue());
+
     return result;
 }

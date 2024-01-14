@@ -28,6 +28,7 @@ public:
 	ShRenderer& operator=(const ShRenderer&) = delete;
 
 	VkRenderPass getSwapChainRenderPass() const { return shSwapchain->getRenderPass(); }
+	VkFormat getFormat() const { return shSwapchain->getSwapChainImageFormat(); }
 	float getAspectRatio() const { return shSwapchain->extentAspectRatio(); }
 	bool isFrameInProgress() const { return isFrameStarted; }
 

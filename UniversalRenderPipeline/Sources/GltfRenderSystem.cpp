@@ -13,8 +13,8 @@
 #include <stdexcept>
 
 GltfRenderSystem::GltfRenderSystem(
-	ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader, ShadowRenderSystem* rendersystem)
-	: RenderSystem(device, renderPass, vertexShader, fragmentShader), shadowRenderSystem(rendersystem)
+	ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader, ShadowRenderSystem* rendersystem, uint32_t colorBlendAttachmentCount)
+	: RenderSystem(device, renderPass, vertexShader, fragmentShader), shadowRenderSystem(rendersystem), colorBlendAttachmentCount(colorBlendAttachmentCount)
 {
 	createPipelineLayout(setlayouts);
 	createPipeline(renderPass);
@@ -25,7 +25,7 @@ void GltfRenderSystem::createPipeline(VkRenderPass renderPass)
 	assert(pipelineLayout != nullptr && "GltfRenderSystem Cannot create pipeline before pipeline layout");
 
 	PipelineConfigInfo pipelineConfig{};
-	ShPipeline::defaultPipelineConfigInfo(pipelineConfig, vkglTF::Vertex::getBindingDescriptions, vkglTF::Vertex::getAttributeDescriptions);
+	ShPipeline::defaultPipelineConfigInfo(pipelineConfig, vkglTF::Vertex::getBindingDescriptions, vkglTF::Vertex::getAttributeDescriptions, colorBlendAttachmentCount);
 	pipelineConfig.renderPass = renderPass;
 	pipelineConfig.pipelineLayout = pipelineLayout;
 	lvePipeline = std::make_unique<ShPipeline>(
@@ -37,15 +37,16 @@ void GltfRenderSystem::createPipeline(VkRenderPass renderPass)
 
 void GltfRenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout>& setLayouts)
 {
+	std::vector<VkDescriptorSetLayout> layouts = setLayouts;
 	if (vkglTF::descriptorSetLayoutImage != VK_NULL_HANDLE)
 	{
-		setLayouts.push_back(vkglTF::descriptorSetLayoutImage);
+		layouts.push_back(vkglTF::descriptorSetLayoutImage);
 	}
 	if (shadowRenderSystem != nullptr)
 	{
-		setLayouts.push_back(shadowRenderSystem->getLightSetLayout());
+		layouts.push_back(shadowRenderSystem->getLightSetLayout());
 	}
-	RenderSystem::createPipelineLayout(setLayouts);
+	RenderSystem::createPipelineLayout(layouts);
 }
 
 void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
@@ -83,8 +84,7 @@ void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 			continue;
 
 		SimplePushConstantData push{};
-		auto rotateLight = glm::rotate(glm::mat4(1.f), 0.5f * frameInfo.frameTime, { 0.f, -1.f, 0.f });
-		obj.transform.translation = glm::vec3(rotateLight * glm::vec4(obj.transform.translation, 1.f));
+		obj.transform.translation = glm::vec3(glm::vec4(obj.transform.translation, 1.f));
 		push.modelMatrix = obj.transform.mat4();
 		push.normalMatrix = obj.transform.normalMatrix();
 

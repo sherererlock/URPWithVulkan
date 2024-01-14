@@ -36,9 +36,10 @@ protected:
 
 protected:
 	virtual std::vector<VkAttachmentDescription> GetAttachmentDescriptions() const = 0 ;
-	virtual std::vector<VkSubpassDescription> GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs) const = 0;
+	virtual std::vector<VkSubpassDescription> GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs, const VkAttachmentReference& depthRef) const = 0;
 	virtual std::vector<VkSubpassDependency> GetSubpassDependencies() const = 0;
-	virtual std::vector<VkAttachmentReference> GetAttachmentRefs() const = 0;
+	virtual std::vector<VkAttachmentReference> GetColorAttachmentRefs() const = 0;
+	virtual VkAttachmentReference GetDepthAttachmentRef() const { return VkAttachmentReference{}; }
 	virtual std::vector<VkImageView> GetImageViews() const = 0;
 	virtual std::vector<VkClearValue> GetClearValues() const = 0;
 

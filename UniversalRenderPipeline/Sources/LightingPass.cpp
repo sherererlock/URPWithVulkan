@@ -18,9 +18,9 @@ std::vector<VkAttachmentDescription> LightingPass::GetAttachmentDescriptions() c
     return { colorAttachmentDes };
 }
 
-std::vector<VkSubpassDescription> LightingPass::GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs) const
+std::vector<VkSubpassDescription> LightingPass::GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs, const VkAttachmentReference& depthRef) const
 {
-    VkSubpassDescription subpassDes;
+    VkSubpassDescription subpassDes{};
 
     uint32_t colorCount = (uint32_t)(attachmentRefs.size());
     subpassDes.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -54,11 +54,11 @@ std::vector<VkSubpassDependency> LightingPass::GetSubpassDependencies() const
     return { dependencies[0], dependencies[1]};
 }
 
-std::vector<VkAttachmentReference> LightingPass::GetAttachmentRefs() const
+std::vector<VkAttachmentReference> LightingPass::GetColorAttachmentRefs() const
 {
     VkAttachmentReference ref;
     ref.attachment = 0;
-    ref.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     return { ref };
 }
@@ -70,7 +70,7 @@ std::vector<VkImageView> LightingPass::GetImageViews() const
 
 std::vector<VkClearValue> LightingPass::GetClearValues() const
 {
-    VkClearValue clearValue;
+    VkClearValue clearValue{};
     clearValue.color = { 0, 0, 0, 1 };
     return { clearValue };
 }

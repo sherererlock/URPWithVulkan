@@ -31,6 +31,7 @@ public:
 
 	VkDescriptorSetLayout getLightSetLayout() const { return lightSetLayout->getDescriptorSetLayout(); }
 	VkDescriptorSet getLightSet(int frameIndex) const { return lightSets[frameIndex]; }
+	const std::array<std::unique_ptr<ShBuffer>, ShSwapchain::MAX_FRAMES_IN_FLIGHT>& getBuffers() const { return buffers;  }
 
 	void setupDescriptorSet(ShDescriptorPool& pool);
 	void setupLight(const ShGameObject& light, int frameIndex);

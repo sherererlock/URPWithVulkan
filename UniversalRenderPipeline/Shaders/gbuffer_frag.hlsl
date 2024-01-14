@@ -2,11 +2,9 @@
 struct VSOutput
 {
     float4 Pos : SV_Position;
-    [[vk::location(0)]] float3 WorldPos : POSITION0;
-    [[vk::location(1)]] float3 Normal : NORMAL0;
-    [[vk::location(2)]] float2 UV : TEXCOORD0;
-    [[vk::location(3)]] float3 Tangent : TEXCOORD1;
-    [[vk::location(4)]] float4 ShadowCoords : TEXCOORD2;
+    [[vk::location(0)]] float3 Normal : NORMAL0;
+    [[vk::location(1)]] float2 UV : TEXCOORD0;
+    [[vk::location(2)]] float3 Tangent : TEXCOORD1;
 };
 
 struct FSOutput
@@ -81,9 +79,14 @@ FSOutput main(VSOutput input) : SV_TARGET
     float roughness = rm.x;
     float metallic = rm.y;
     
+    albedo = float3(1, 0, 0);
     output.albedo = float4(albedo, roughness);
     output.normal = float4(normal * 0.5f + float3(0.5f, 0.5f, 0.5f), metallic);
     output.emmisive = float4(emmisive, 1.0f);
+    
+    output.albedo = float4(albedo, 1.0f);
+    output.normal = float4(albedo, 1.0f);
+    output.emmisive = float4(albedo, 1.0f);
 
     return output;
 }
