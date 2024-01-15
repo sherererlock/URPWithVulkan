@@ -1,12 +1,17 @@
 #pragma once
 #include "ShRenderPass.h"
+
+//#define CALC_POSITION
+
 class BasePass : public ShRenderPass
 {
 private:
 	FrameBufferAttachment albedo;
 	FrameBufferAttachment normal;
 	FrameBufferAttachment emissive;
+	FrameBufferAttachment position;
 	FrameBufferAttachment depth;
+
 
 protected:
 	// Í¨¹ý ShRenderPass ¼Ì³Ð
@@ -26,6 +31,7 @@ public:
 	VkDescriptorImageInfo GetAlbedo() const { return albedo.descriptor(); }
 	VkDescriptorImageInfo GetNormal() const { return normal.descriptor(); }
 	VkDescriptorImageInfo GetEmissive() const { return emissive.descriptor(); }
+	VkDescriptorImageInfo GetPosition() const { return position.descriptor(); }
 	VkDescriptorImageInfo GetDepth() const { return depth.descriptor(); }
 };
 

@@ -35,7 +35,7 @@
 #define MAX_UNIFORM_BUFFER_NUM 20
 #define MAX_SAMPLER_BUFFER_NUM 20
 
-//#define DEFERRENDERING
+#define DEFERRENDERING
 
 struct CameraExtentUBO
 {
@@ -102,8 +102,11 @@ void ShAPP::run()
 	//simpleRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
 
 	GltfRenderSystem gltfRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(), setlayouts, "shaders/spv/pbr_vert.hlsl.spv", "shaders/spv/pbr_frag.hlsl.spv", &shadowRenderSystem };
+#ifdef  CALC_POSITION
 	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_vert.hlsl.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 3};
-
+#else
+	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_vert.hlsl.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 4 };
+#endif
 	auto lightingSetLayout0 =
 		ShDescriptorSetLayout::Builder(shDevice)
 		.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
@@ -118,6 +121,9 @@ void ShAPP::run()
 		.addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
 		.addBinding(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
 		.addBinding(4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+#ifndef  CALC_POSITION
+		.addBinding(5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+#endif // ! CALC_POSITION
 		.build();
 
 	std::vector<std::unique_ptr<ShBuffer>> cameraBuffers(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
@@ -152,6 +158,8 @@ void ShAPP::run()
 	VkDescriptorImageInfo emissiveImageInfo = basePass.GetEmissive();
 	VkDescriptorImageInfo depthImageInfo = basePass.GetDepth();
 	VkDescriptorImageInfo shadowImageInfo = shadowPass.getShadowMapImageInfo();
+
+	VkDescriptorImageInfo psotionImageInfo = basePass.GetPosition();
 	for (int i = 0; i < imageDescriptorSets.size(); i++)
 	{
 		
@@ -161,6 +169,9 @@ void ShAPP::run()
 			.writeImage(2, &emissiveImageInfo)
 			.writeImage(3, &depthImageInfo)
 			.writeImage(4, &shadowImageInfo)
+#ifndef  CALC_POSITION
+			.writeImage(5, &psotionImageInfo)
+#endif // ! CALC_POSITION
 			.build(imageDescriptorSets[i]);
 	}
 

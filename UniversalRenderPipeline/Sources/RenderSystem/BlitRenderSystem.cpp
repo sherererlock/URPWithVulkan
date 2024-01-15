@@ -47,6 +47,7 @@ void BlitRenderSystem::createPipeline(VkRenderPass renderPass)
 	pipelineConfig.pipelineLayout = pipelineLayout;
 
 	pipelineConfig.depthStencilInfo.depthWriteEnable = VK_FALSE;
+	pipelineConfig.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
 	lvePipeline = std::make_unique<ShPipeline>(
 		lveDevice,
 		vertexShader,

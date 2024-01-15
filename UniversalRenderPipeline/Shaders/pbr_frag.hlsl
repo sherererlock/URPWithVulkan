@@ -87,8 +87,9 @@ float4 main(VSOutput input) :SV_TARGET
     F0 = lerp(F0, albedo, metallic);
     
     //float4 shadowCoords = mul(shadowUbo.lightVP, float4(input.WorldPos + shadowUbo.shadowBias.x * normal, 1.0));
+    float4 shadowCoords = input.ShadowCoords;
     float shadow = getShadow(shadowCoords, textureShadow, samplerShadow);
-    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, shadow, input.WorldPos);
+    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, 1, input.WorldPos);
    
     Lo = pow(Lo, float3(0.45f, 0.45f, 0.45f));
     return float4(Lo + emmisive, 1.0f);

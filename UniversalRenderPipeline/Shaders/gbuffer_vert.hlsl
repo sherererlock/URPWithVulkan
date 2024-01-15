@@ -13,6 +13,7 @@ struct VSOutput
     [[vk::location(0)]] float3 Normal : NORMAL0;
     [[vk::location(1)]] float2 UV : TEXCOORD0;
     [[vk::location(2)]] float3 Tangent : TEXCOORD1;
+    [[vk::location(3)]] float3 Position : TEXCOORD2;
 };
 
 struct PointLight
@@ -49,8 +50,8 @@ struct PushConsts
 VSOutput main(VSInput input)
 {
     VSOutput output = (VSOutput) 0;
-    float3 worldPos = mul(pushConsts.modelMatrix, float4(input.Pos, 1.0)).xyz;
-    output.Pos = mul(ubo.projection, mul(ubo.view, float4(worldPos, 1.0)));
+    output.Position = mul(pushConsts.modelMatrix, float4(input.Pos, 1.0)).xyz;
+    output.Pos = mul(ubo.projection, mul(ubo.view, float4(output.Position, 1.0)));
     float3x3 mat = (float3x3) pushConsts.modelMatrix;
     output.Normal = normalize(mul(mat, input.Normal));
     output.UV = input.UV;

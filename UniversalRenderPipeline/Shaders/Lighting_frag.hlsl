@@ -1,9 +1,11 @@
+
+#include "macros.hlsl"
+
 struct VSOutput
 {
     float4 Pos : SV_POSITION;
     [[vk::location(0)]] float2 UV : TEXCOORD0;
 };
-
 
 struct PointLight
 {
@@ -66,6 +68,11 @@ SamplerState samplerDepth : register(s3, space1);
 Texture2D textureShadow : register(t4, space1);
 SamplerState samplerShadow : register(s4, space1);
 
+#ifndef CALC_POSITOIN
+Texture2D texturePosition : register(t5, space1);
+SamplerState samplerPosition : register(s5, space1);
+#endif
+
 #include "shadow.hlsl"
 #include "common.hlsl"
 #include "Lighting.hlsl"
@@ -80,25 +87,33 @@ float4 main(VSOutput input) : SV_TARGET
     float4 gbuffer1 = textureColor.Sample(samplerColor, uv);
     float4 gbuffer2 = textureNormal.Sample(samplerNormal, uv);
 
+    
     float depth = textureDepth.Sample(samplerDepth, uv).r;
     
     float3 albedo = pow(gbuffer1.rgb, float3(2.2f, 2.2f, 2.2f));
-    float3 normal = normalize(gbuffer2.rgb * 2.0f - float3(1.0f, 1.0f, 1.0f));
+    float3 normal = normalize(gbuffer2.xyz * 2.0f - float3(1.0f, 1.0f, 1.0f));
+    //float3 normal = normalize(gbuffer2.xyz);
     float3 emissive = gbuffer3.rgb;
     
     float roughness = gbuffer1.a;
     float metallic = gbuffer2.a;
-    
+   
     float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
+    
+#ifndef CALC_POSITOIN
+    float4 gbuffer4 = texturePosition.Sample(samplerPosition, uv);
+    float3 worldPos = gbuffer4.xyz;
+#else
     float ldepth = linearDepth(depth, ubo.camereInfo.x, ubo.camereInfo.y);
     float3 worldPos = ReconstructWorldPos(uv, ldepth, cameraubo.leftTop.xyz, cameraubo.left2Right.xyz, cameraubo.top2bottom.xyz, ubo.camereInfo.z);
+#endif
     
     float3 biasPos = worldPos + normal * shadowUbo.shadowBias.x;
     float4 shadowCoords = mul(shadowUbo.lightVP, float4(biasPos, 1.0f));
     float shadow = getShadow(shadowCoords, textureShadow, samplerShadow);
     
     float3 viewDir = normalize(ubo.viewPos.xyz - worldPos);
-    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, shadow, worldPos);
+    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, 1, worldPos);
     
     Lo = pow(Lo, float3(0.45f, 0.45f, 0.45f));
     

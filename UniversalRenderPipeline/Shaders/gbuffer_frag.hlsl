@@ -1,10 +1,13 @@
 
+#include "macros.hlsl"
+
 struct VSOutput
 {
     float4 Pos : SV_Position;
     [[vk::location(0)]] float3 Normal : NORMAL0;
     [[vk::location(1)]] float2 UV : TEXCOORD0;
     [[vk::location(2)]] float3 Tangent : TEXCOORD1;
+    [[vk::location(3)]] float3 Position : TEXCOORD2;
 };
 
 struct FSOutput
@@ -12,6 +15,9 @@ struct FSOutput
     float4 albedo : SV_TARGET0;
     float4 normal : SV_TARGET1;
     float4 emmisive : SV_TARGET2;
+#ifndef CALC_POSITOIN
+    float4 position : SV_TARGET3;
+#endif
 };
 
 struct PointLight
@@ -78,10 +84,14 @@ FSOutput main(VSOutput input) : SV_TARGET
     float2 rm = textureRoughness.Sample(samplerRoughness, input.UV).gb;
     float roughness = rm.x;
     float metallic = rm.y;
-    
+        
     output.albedo = float4(albedo, roughness);
     output.normal = float4(normal * 0.5f + float3(0.5f, 0.5f, 0.5f), metallic);
+    //output.normal = float4(normal, metallic);
     output.emmisive = float4(emmisive, 1.0f);
+#ifndef CALC_POSITOIN 
+    output.position = float4(input.Position, 1.0f);
+#endif
     
     return output;
 }

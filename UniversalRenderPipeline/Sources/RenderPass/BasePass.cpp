@@ -1,5 +1,6 @@
-#include "BasePass.h"
 #include <array>
+
+#include "BasePass.h"
 
 std::vector<VkAttachmentDescription> BasePass::GetAttachmentDescriptions() const
 {
@@ -24,7 +25,17 @@ std::vector<VkAttachmentDescription> BasePass::GetAttachmentDescriptions() const
     depthAttachmentDes.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     depthAttachmentDes.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
-    return { colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, depthAttachmentDes };
+#ifdef CALC_POSITION
+    std::vector<VkAttachmentDescription> attachments = { colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, depthAttachmentDes };
+    //attachments[1].format = VK_FORMAT_R16G16B16A16_SFLOAT;
+    return attachments;
+#else
+    std::vector<VkAttachmentDescription> attachments = { colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, depthAttachmentDes };
+    //attachments[1].format = VK_FORMAT_R16G16B16A16_SFLOAT;
+    attachments[3].format = VK_FORMAT_R16G16B16A16_SFLOAT;
+    return attachments;
+#endif // CALC_POSITION
+
 }
 
 std::vector<VkSubpassDescription> BasePass::GetSubpassDescriptions(const std::vector<VkAttachmentReference>& attachmentRefs, const VkAttachmentReference& depthRef) const
@@ -64,7 +75,11 @@ std::vector<VkSubpassDependency> BasePass::GetSubpassDependencies() const
 
 std::vector<VkAttachmentReference> BasePass::GetColorAttachmentRefs() const
 {
+#ifdef CALC_POSITION
     std::vector<VkAttachmentReference> colorRefs(3);
+#else
+    std::vector<VkAttachmentReference> colorRefs(4);
+#endif
 
     for (int i = 0; i < colorRefs.size(); i++)
     {
@@ -79,7 +94,11 @@ VkAttachmentReference BasePass::GetDepthAttachmentRef() const
 {
     VkAttachmentReference depthRef;
 
+#ifdef CALC_POSITION
     depthRef.attachment = 3;
+#else
+    depthRef.attachment = 4;
+#endif
     depthRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     return depthRef;
@@ -87,16 +106,31 @@ VkAttachmentReference BasePass::GetDepthAttachmentRef() const
 
 std::vector<VkImageView> BasePass::GetImageViews() const
 {
+#ifdef CALC_POSITION
     return {albedo.view, normal.view, emissive.view, depth.view};
+#else
+
+    return { albedo.view, normal.view, emissive.view, position.view, depth.view };
+#endif
 }
 
 std::vector<VkClearValue> BasePass::GetClearValues() const
 {
+#ifdef CALC_POSITION
+
     std::vector<VkClearValue> clearValues(4);
     for (VkClearValue& clearValue : clearValues)
         clearValue.color = { 0.0f, 0.0f, 0.0f, 0.0f };
 
     clearValues[3].depthStencil = { 1.0f, 0 };
+
+#else
+    std::vector<VkClearValue> clearValues(5);
+    for (VkClearValue& clearValue : clearValues)
+        clearValue.color = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+    clearValues[4].depthStencil = { 1.0f, 0 };
+#endif
 
     return clearValues;
 }
@@ -107,6 +141,8 @@ BasePass::BasePass(ShDevice& device, uint32_t w, uint32_t h)
     createAttachment(&albedo, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     createAttachment(&normal, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     createAttachment(&emissive, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    createAttachment(&position, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
     VkFormat format = device.findSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
         VK_IMAGE_TILING_OPTIMAL,
         VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
