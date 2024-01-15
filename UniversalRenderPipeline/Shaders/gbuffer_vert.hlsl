@@ -52,9 +52,9 @@ VSOutput main(VSInput input)
     float3 worldPos = mul(pushConsts.modelMatrix, float4(input.Pos, 1.0)).xyz;
     output.Pos = mul(ubo.projection, mul(ubo.view, float4(worldPos, 1.0)));
     float3x3 mat = (float3x3) pushConsts.modelMatrix;
-    output.Normal = normalize(mul(mat, normalize(input.Normal)));
+    output.Normal = normalize(mul(mat, input.Normal));
     output.UV = input.UV;
-    output.Tangent = normalize(mul(mat, normalize(input.Tangent.xyz)));
+    output.Tangent = normalize(mul(mat, input.Tangent.xyz));
     
     return output;
 }

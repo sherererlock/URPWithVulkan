@@ -23,8 +23,8 @@ private:
 	ShGameObject::Map gameObjects;
 
 public:
-	static constexpr int WIDTH = 1920;
-	static constexpr int HEIGHT = 1080;
+	static constexpr int WIDTH = 720;
+	static constexpr int HEIGHT = 576;
 	static constexpr int ShadowResolution = 2048;
 
 	ShAPP();

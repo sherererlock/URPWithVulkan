@@ -19,21 +19,23 @@
 #include "shbuffer.h"
 #include "camera.hpp"
 
-#include "SimpleRenderSystem.h"
-#include "GltfRenderSystem.h"
-#include "PointLight.h"
+#include "RenderSystem/SimpleRenderSystem.h"
+#include "RenderSystem/GltfRenderSystem.h"
+#include "RenderSystem/PointLight.h"
 #include "InputController.h"
-#include "ShadowPass.h"
-#include "ShadowRenderSystem.h"
-#include "BasePass.h"
-#include "LightingPass.h"
-#include "BlitPass.h"
-#include "BlitRenderSystem.h"
+#include "RenderPass/ShadowPass.h"
+#include "RenderSystem/ShadowRenderSystem.h"
+#include "RenderPass/BasePass.h"
+#include "RenderPass/LightingPass.h"
+#include "RenderPass/BlitPass.h"
+#include "RenderSystem/BlitRenderSystem.h"
 
 
 #define MAX_SET_NUM 20
 #define MAX_UNIFORM_BUFFER_NUM 20
 #define MAX_SAMPLER_BUFFER_NUM 20
+
+//#define DEFERRENDERING
 
 struct CameraExtentUBO
 {
@@ -272,6 +274,7 @@ void ShAPP::run()
 			shadowRenderSystem.renderGameObjects(frameInfo);
 			shadowPass.endRenderPass(commandBuffer);
 
+#ifdef DEFERRENDERING
 			// base pass
 			basePass.beginRenderPass(commandBuffer);
 			baseRenderSystem.renderGameObjects(frameInfo);
@@ -281,15 +284,19 @@ void ShAPP::run()
 			lightPass.beginRenderPass(commandBuffer);
 			lightingRenderSystem.renderGameObjects(frameInfo, { lightDescriptorSets[frameIndex], imageDescriptorSets[frameIndex] });
 			lightPass.endRenderPass(commandBuffer);
+#endif
 
 			// render
 			shRenderer.beginSwapChainRenderPass(commandBuffer);
 
 			// order here matters
 			//simpleRenderSystem.renderGameObjects(frameInfo);
-			//gltfRenderSystem.renderGameObjects(frameInfo);
-
+#ifdef DEFERRENDERING
 			blitRenderSystem.renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] });
+#else
+			gltfRenderSystem.renderGameObjects(frameInfo);
+#endif
+
 			pointLightSystem.render(frameInfo);
 
 			shRenderer.endSwapChainRenderPass(commandBuffer);
@@ -341,8 +348,8 @@ void ShAPP::loadGameObjects()
 
 	std::vector<glm::vec3> lightColors{
 		{1.f, 1.f, 1.f},
-		{1.f, .1f, .1f},
-		{.1f, .1f, 1.f},
+		//{1.f, .1f, .1f},
+		//{.1f, .1f, 1.f},
 		//{.1f, 1.f, .1f},
 		//{1.f, 1.f, .1f},
 		//{.1f, 1.f, 1.f},
@@ -357,7 +364,7 @@ void ShAPP::loadGameObjects()
 			glm::mat4(1.f),
 			(i * glm::two_pi<float>()) / lightColors.size(),
 			{ 0.f, -1.f, 0.f });
-		pointLight.transform.translation = glm::vec3(rotateLight * glm::vec4(0.8f, 1.0f, 2.413f, 1.f));
+		pointLight.transform.translation = glm::vec3(rotateLight * glm::vec4(0.4f, 0.5f, 1.413f, 1.f));
 		gameObjects.emplace(pointLight.getId(), std::move(pointLight));
 	}
 }

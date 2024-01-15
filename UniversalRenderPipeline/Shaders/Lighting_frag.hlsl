@@ -73,13 +73,17 @@ SamplerState samplerShadow : register(s4, space1);
 float4 main(VSOutput input) : SV_TARGET
 {
     float2 uv = input.UV;
-    float4 gbuffer1 = textureColor.Sample(samplerColor, uv);    
-    float4 gbuffer2 = textureNormal.Sample(samplerNormal, uv);
     float4 gbuffer3 = textureEmissive.Sample(samplerEmissive, uv);
+    if (gbuffer3.a != 1.0f)
+        return float4(0.0f, 0.0f, 0.0f, 1.0f);
+    
+    float4 gbuffer1 = textureColor.Sample(samplerColor, uv);
+    float4 gbuffer2 = textureNormal.Sample(samplerNormal, uv);
+
     float depth = textureDepth.Sample(samplerDepth, uv).r;
     
     float3 albedo = pow(gbuffer1.rgb, float3(2.2f, 2.2f, 2.2f));
-    float3 normal = normalize(gbuffer2.rgb * 2.0f - 1.0f);
+    float3 normal = normalize(gbuffer2.rgb * 2.0f - float3(1.0f, 1.0f, 1.0f));
     float3 emissive = gbuffer3.rgb;
     
     float roughness = gbuffer1.a;
@@ -94,7 +98,7 @@ float4 main(VSOutput input) : SV_TARGET
     float shadow = getShadow(shadowCoords, textureShadow, samplerShadow);
     
     float3 viewDir = normalize(ubo.viewPos.xyz - worldPos);
-    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, 1.0f, worldPos);
+    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, shadow, worldPos);
     
     Lo = pow(Lo, float3(0.45f, 0.45f, 0.45f));
     

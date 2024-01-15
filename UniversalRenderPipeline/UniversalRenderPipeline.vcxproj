@@ -19,29 +19,29 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Sources\BlitRenderSystem.cpp" />
-    <ClCompile Include="Sources\BlitPass.cpp" />
-    <ClCompile Include="Sources\LightingPass.cpp" />
-    <ClCompile Include="Sources\BasePass.cpp" />
-    <ClCompile Include="Sources\ShadowRenderSystem.cpp" />
-    <ClCompile Include="Sources\ShadowPass.cpp" />
-    <ClCompile Include="Sources\ShRenderPass.cpp" />
-    <ClCompile Include="Sources\GltfRenderSystem.cpp" />
+    <ClCompile Include="Sources\RenderSystem\BlitRenderSystem.cpp" />
+    <ClCompile Include="Sources\RenderPass\BlitPass.cpp" />
+    <ClCompile Include="Sources\RenderPass\LightingPass.cpp" />
+    <ClCompile Include="Sources\RenderPass\BasePass.cpp" />
+    <ClCompile Include="Sources\RenderSystem\ShadowRenderSystem.cpp" />
+    <ClCompile Include="Sources\RenderPass\ShadowPass.cpp" />
+    <ClCompile Include="Sources\RenderPass\ShRenderPass.cpp" />
+    <ClCompile Include="Sources\RenderSystem\GltfRenderSystem.cpp" />
     <ClCompile Include="include\ktx\lib\checkheader.c" />
     <ClCompile Include="include\ktx\lib\filestream.c" />
     <ClCompile Include="include\ktx\lib\hashlist.c" />
     <ClCompile Include="include\ktx\lib\memstream.c" />
     <ClCompile Include="include\ktx\lib\swap.c" />
     <ClCompile Include="include\ktx\lib\texture.c" />
-    <ClCompile Include="Sources\RenderSystem.cpp" />
+    <ClCompile Include="Sources\RenderSystem\RenderSystem.cpp" />
     <ClCompile Include="Sources\ShTexture.cpp" />
-    <ClCompile Include="Sources\PointLight.cpp" />
+    <ClCompile Include="Sources\RenderSystem\PointLight.cpp" />
     <ClCompile Include="Sources\camera.cpp" />
     <ClCompile Include="Sources\InputController.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
     <ClCompile Include="Sources\ShAPP.cpp" />
     <ClCompile Include="Sources\ShDescriptors.cpp" />
-    <ClCompile Include="Sources\SimpleRenderSystem.cpp" />
+    <ClCompile Include="Sources\RenderSystem\SimpleRenderSystem.cpp" />
     <ClCompile Include="Sources\ShPipeline.cpp" />
     <ClCompile Include="Sources\ShGameObject.cpp" />
     <ClCompile Include="Sources\ShModel.cpp" />
@@ -55,24 +55,24 @@
     <ClCompile Include="Sources\VulkanglTFModel.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Sources\BlitRenderSystem.h" />
-    <ClInclude Include="Sources\BlitPass.h" />
-    <ClInclude Include="Sources\LightingPass.h" />
-    <ClInclude Include="Sources\BasePass.h" />
+    <ClInclude Include="Sources\RenderSystem\BlitRenderSystem.h" />
+    <ClInclude Include="Sources\RenderPass\BlitPass.h" />
+    <ClInclude Include="Sources\RenderPass\LightingPass.h" />
+    <ClInclude Include="Sources\RenderPass\BasePass.h" />
     <ClInclude Include="Sources\camera.hpp" />
-    <ClInclude Include="Sources\ShadowRenderSystem.h" />
-    <ClInclude Include="Sources\ShadowPass.h" />
-    <ClInclude Include="Sources\ShRenderPass.h" />
-    <ClInclude Include="Sources\GltfRenderSystem.h" />
-    <ClInclude Include="Sources\RenderSystem.h" />
+    <ClInclude Include="Sources\RenderSystem\ShadowRenderSystem.h" />
+    <ClInclude Include="Sources\RenderPass\ShadowPass.h" />
+    <ClInclude Include="Sources\RenderPass\ShRenderPass.h" />
+    <ClInclude Include="Sources\RenderSystem\GltfRenderSystem.h" />
+    <ClInclude Include="Sources\RenderSystem\RenderSystem.h" />
     <ClInclude Include="Sources\ShTexture.h" />
-    <ClInclude Include="Sources\PointLight.h" />
+    <ClInclude Include="Sources\RenderSystem\PointLight.h" />
     <ClInclude Include="Sources\InputController.h" />
     <ClInclude Include="Sources\ShAPP.h" />
     <ClInclude Include="Sources\ShDescriptors.h" />
     <ClInclude Include="Sources\camera.h" />
     <ClInclude Include="Sources\sh_frame_info.h" />
-    <ClInclude Include="Sources\SimpleRenderSystem.h" />
+    <ClInclude Include="Sources\RenderSystem\SimpleRenderSystem.h" />
     <ClInclude Include="Sources\ShPipeline.h" />
     <ClInclude Include="Sources\ShGameObject.h" />
     <ClInclude Include="Sources\ShModel.h" />
@@ -207,7 +207,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)include\ktx\include;$(SolutionDir)include\ktx\other_include;$(SolutionDir)include\glm;$(SolutionDir)include\tinygltf;$(SolutionDir)include\glfw</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)include\ktx\include;$(SolutionDir)include\ktx\other_include;$(SolutionDir)include\glm;$(SolutionDir)include\tinygltf;$(SolutionDir)include\glfw;$(SolutionDir)Sources</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

@@ -42,7 +42,7 @@
     <ClCompile Include="Sources\ShPipeline.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\SimpleRenderSystem.cpp">
+    <ClCompile Include="Sources\RenderSystem\SimpleRenderSystem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Sources\ShDescriptors.cpp">
@@ -60,7 +60,7 @@
     <ClCompile Include="Sources\camera.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\PointLight.cpp">
+    <ClCompile Include="Sources\RenderSystem\PointLight.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Sources\ShTexture.cpp">
@@ -72,7 +72,7 @@
     <ClCompile Include="Sources\VulkanglTFModel.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\RenderSystem.cpp">
+    <ClCompile Include="Sources\RenderSystem\RenderSystem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="include\ktx\lib\checkheader.c">
@@ -93,28 +93,28 @@
     <ClCompile Include="include\ktx\lib\filestream.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\GltfRenderSystem.cpp">
+    <ClCompile Include="Sources\RenderSystem\GltfRenderSystem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\ShRenderPass.cpp">
+    <ClCompile Include="Sources\RenderPass\ShRenderPass.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\ShadowPass.cpp">
+    <ClCompile Include="Sources\RenderPass\ShadowPass.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\ShadowRenderSystem.cpp">
+    <ClCompile Include="Sources\RenderSystem\ShadowRenderSystem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\BasePass.cpp">
+    <ClCompile Include="Sources\RenderPass\BasePass.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\LightingPass.cpp">
+    <ClCompile Include="Sources\RenderPass\LightingPass.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\BlitPass.cpp">
+    <ClCompile Include="Sources\RenderPass\BlitPass.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\BlitRenderSystem.cpp">
+    <ClCompile Include="Sources\RenderSystem\BlitRenderSystem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -137,7 +137,7 @@
     <ClInclude Include="Sources\ShPipeline.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\SimpleRenderSystem.h">
+    <ClInclude Include="Sources\RenderSystem\SimpleRenderSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Sources\sh_frame_info.h">
@@ -155,7 +155,7 @@
     <ClInclude Include="Sources\InputController.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\PointLight.h">
+    <ClInclude Include="Sources\RenderSystem\PointLight.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Sources\ShTexture.h">
@@ -167,34 +167,34 @@
     <ClInclude Include="Sources\VulkanglTFModel.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\RenderSystem.h">
+    <ClInclude Include="Sources\RenderSystem\RenderSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\GltfRenderSystem.h">
+    <ClInclude Include="Sources\RenderSystem\GltfRenderSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\ShRenderPass.h">
+    <ClInclude Include="Sources\RenderPass\ShRenderPass.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\ShadowPass.h">
+    <ClInclude Include="Sources\RenderPass\ShadowPass.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\ShadowRenderSystem.h">
+    <ClInclude Include="Sources\RenderSystem\ShadowRenderSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Sources\camera.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\BasePass.h">
+    <ClInclude Include="Sources\RenderPass\BasePass.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\LightingPass.h">
+    <ClInclude Include="Sources\RenderPass\LightingPass.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\BlitPass.h">
+    <ClInclude Include="Sources\RenderPass\BlitPass.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\BlitRenderSystem.h">
+    <ClInclude Include="Sources\RenderSystem\BlitRenderSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

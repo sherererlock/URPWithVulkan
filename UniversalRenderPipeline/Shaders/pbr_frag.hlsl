@@ -32,6 +32,17 @@ cbuffer ubo : register(b0)
     GlobalUBO ubo;
 }
 
+struct ShadowUBO
+{
+    float4x4 lightVP;
+    float4 shadowBias; // (normalbias, w, 0, 0)
+};
+
+cbuffer shadowUbo : register(b0, space2)
+{
+    ShadowUBO shadowUbo;
+}
+
 struct PushConsts
 {
     float4x4 modelMatrix;
@@ -75,7 +86,8 @@ float4 main(VSOutput input) :SV_TARGET
     float3 F0 = float3(0.04f, 0.04f, 0.04f);
     F0 = lerp(F0, albedo, metallic);
     
-    float shadow = getShadow(input.ShadowCoords, textureShadow, samplerShadow);
+    //float4 shadowCoords = mul(shadowUbo.lightVP, float4(input.WorldPos + shadowUbo.shadowBias.x * normal, 1.0));
+    float shadow = getShadow(shadowCoords, textureShadow, samplerShadow);
     float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, shadow, input.WorldPos);
    
     Lo = pow(Lo, float3(0.45f, 0.45f, 0.45f));

@@ -175,7 +175,7 @@ void ShPipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, getIn
 	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;  // Optional
 	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;              // Optional
 
-	for (int i = 0; i < colorBlendAttachmentCount; i++)
+	for (uint32_t i = 0; i < colorBlendAttachmentCount; i++)
 		configInfo.colorBlendAttachments.push_back(colorBlendAttachment);
 
 	configInfo.colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
