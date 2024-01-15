@@ -1,8 +1,6 @@
 #pragma once
 #include "ShRenderPass.h"
 
-//#define CALC_POSITION
-
 class BasePass : public ShRenderPass
 {
 private:

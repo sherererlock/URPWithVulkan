@@ -1,6 +1,7 @@
 #include <array>
 
 #include "BasePass.h"
+#include "macros.hlsl"
 
 std::vector<VkAttachmentDescription> BasePass::GetAttachmentDescriptions() const
 {

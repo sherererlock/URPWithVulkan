@@ -86,8 +86,6 @@ float4 main(VSOutput input) : SV_TARGET
     
     float4 gbuffer1 = textureColor.Sample(samplerColor, uv);
     float4 gbuffer2 = textureNormal.Sample(samplerNormal, uv);
-
-    
     float depth = textureDepth.Sample(samplerDepth, uv).r;
     
     float3 albedo = pow(gbuffer1.rgb, float3(2.2f, 2.2f, 2.2f));
@@ -105,15 +103,24 @@ float4 main(VSOutput input) : SV_TARGET
     float3 worldPos = gbuffer4.xyz;
 #else
     float ldepth = linearDepth(depth, ubo.camereInfo.x, ubo.camereInfo.y);
-    float3 worldPos = ReconstructWorldPos(uv, ldepth, cameraubo.leftTop.xyz, cameraubo.left2Right.xyz, cameraubo.top2bottom.xyz, ubo.camereInfo.z);
+    float3 viewPos = ReconstructWorldPos(uv, ldepth, cameraubo.leftTop.xyz, cameraubo.left2Right.xyz, cameraubo.top2bottom.xyz, ubo.camereInfo.z);
+    float3 worldPos = viewPos + ubo.viewPos.xyz;
 #endif
+    
+    float ldepth = linearDepth(depth, ubo.camereInfo.x, ubo.camereInfo.y);
+    float3 viewPos = ReconstructWorldPos(uv, ldepth, cameraubo.leftTop.xyz, cameraubo.left2Right.xyz, cameraubo.top2bottom.xyz, ubo.camereInfo.z);
+    float3 worldPos1 = viewPos + ubo.viewPos.xyz;
+    
+    //return float4(worldPos1, 1.0f);
+    
+    worldPos = worldPos1;
     
     float3 biasPos = worldPos + normal * shadowUbo.shadowBias.x;
     float4 shadowCoords = mul(shadowUbo.lightVP, float4(biasPos, 1.0f));
     float shadow = getShadow(shadowCoords, textureShadow, samplerShadow);
     
     float3 viewDir = normalize(ubo.viewPos.xyz - worldPos);
-    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, 1, worldPos);
+    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, 1.0f, worldPos);
     
     Lo = pow(Lo, float3(0.45f, 0.45f, 0.45f));
     

@@ -207,7 +207,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)include\ktx\include;$(SolutionDir)include\ktx\other_include;$(SolutionDir)include\glm;$(SolutionDir)include\tinygltf;$(SolutionDir)include\glfw;$(SolutionDir)Sources</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)include\ktx\include;$(SolutionDir)include\ktx\other_include;$(SolutionDir)include\glm;$(SolutionDir)include\tinygltf;$(SolutionDir)include\glfw;$(SolutionDir)Sources;$(SolutionDir)Shaders</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

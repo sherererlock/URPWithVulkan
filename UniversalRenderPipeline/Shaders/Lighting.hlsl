@@ -49,12 +49,10 @@ float3 DirectLighting(float3 n, float3 v, float3 albedo, float3 F0, float roughn
     for (int i = 0; i < ubo.numLights; i++)
     {
         float3 l = normalize(ubo.pointLights[i].position.xyz - worldPos);
-        float3 lightColor = ubo.pointLights[i].color.rgb;
-        
-        float ndotl = dot(n, l);
+        float ndotl = clamp(dot(n, l), 0.0, 1.0);
         if (ndotl > 0.0)
         {
-            ndotl = clamp(ndotl, 0.0, 1.0);
+            float3 lightColor = ubo.pointLights[i].color.rgb; 
             float3 h = normalize(v + l);
             float ndoth = clamp(dot(n, h), 0.0, 1.0);
             float ndf = D_GGX_TR(ndoth, roughness);

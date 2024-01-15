@@ -30,6 +30,7 @@
 #include "RenderPass/BlitPass.h"
 #include "RenderSystem/BlitRenderSystem.h"
 
+#include "macros.hlsl"
 
 #define MAX_SET_NUM 20
 #define MAX_UNIFORM_BUFFER_NUM 20
@@ -204,8 +205,8 @@ void ShAPP::run()
 	camera.type = Camera2::CameraType::firstperson;
 	camera.flipY = true;
 	camera.movementSpeed = 2.0f;
-	camera.setPosition(glm::vec3(0.28f, 0.82f, -2.6f));
-	camera.setRotation(glm::vec3(-40.0f, 6.0f, 0.0f));
+	camera.setPosition(glm::vec3(0.443f, -0.163f, 2.433f));
+	camera.setRotation(glm::vec3(-20.0f, 173.0f, 0.0f));
 	camera.setPerspective(60.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 256.0f);
 
 	Input input(camera, *this);
@@ -256,6 +257,7 @@ void ShAPP::run()
 			view[3][0] = 0.0f;
 			view[3][1] = 0.0f;
 			view[3][2] = 0.0f;
+			view[3][2] = 1.0f;
 
 			glm::mat vp = camera.matrices.perspective * view;
 
