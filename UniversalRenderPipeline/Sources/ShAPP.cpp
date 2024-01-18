@@ -36,8 +36,6 @@
 #define MAX_UNIFORM_BUFFER_NUM 20
 #define MAX_SAMPLER_BUFFER_NUM 20
 
-#define DEFERRENDERING
-
 struct CameraExtentUBO
 {
 	glm::vec4 leftTop;
@@ -85,9 +83,12 @@ void ShAPP::run()
 			.build(globalDescriptorSets[i]);
 	}
 
+
+#ifdef SHADOW
 	ShadowPass shadowPass{ shDevice,ShadowResolution, ShadowResolution };
 	ShadowRenderSystem shadowRenderSystem{ shDevice, shadowPass.getRenderPass(), "shaders/spv/shadow_vert.hlsl.spv", "shaders/spv/shadow_frag.hlsl.spv", shadowPass.getShadowMapImageInfo()};
 	shadowRenderSystem.setupDescriptorSet(*globalPool);
+#endif
 
 	BasePass basePass{ shDevice, WIDTH, HEIGHT };
 	LightingPass lightPass{ shDevice, WIDTH, HEIGHT, shRenderer.getFormat()};
@@ -152,16 +153,23 @@ void ShAPP::run()
 	}
 
 	std::vector<VkDescriptorSet> lightDescriptorSets(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
+#ifdef SHADOW
 	auto& shadowBuffer = shadowRenderSystem.getBuffers();
+#endif
+
 	for (int i = 0; i < lightDescriptorSets.size(); i++)
 	{
 		auto cameraBufferInfo = cameraBuffers[i]->descriptorInfo();
 		auto glboalBufferInfo = uboBuffers[i]->descriptorInfo();
+#ifdef SHADOW
 		auto shadowBufferInfo = shadowBuffer[i]->descriptorInfo();
+#endif
 		ShDescriptorWriter(*lightingSetLayout0, *globalPool)
 			.writeBuffer(0, &glboalBufferInfo)
 			.writeBuffer(1, &cameraBufferInfo)
+#ifdef SHADOW
 			.writeBuffer(2, &shadowBufferInfo)
+#endif
 			.build(lightDescriptorSets[i]);
 	}
 
@@ -170,7 +178,12 @@ void ShAPP::run()
 	VkDescriptorImageInfo normalImageInfo = basePass.GetNormal();
 	VkDescriptorImageInfo emissiveImageInfo = basePass.GetEmissive();
 	VkDescriptorImageInfo depthImageInfo = basePass.GetDepth();
+
+	uint32_t positionindex = 4;
+#ifdef SHADOW
+	positionindex = 5;
 	VkDescriptorImageInfo shadowImageInfo = shadowPass.getShadowMapImageInfo();
+#endif
 
 	VkDescriptorImageInfo psotionImageInfo = basePass.GetPosition();
 	for (int i = 0; i < imageDescriptorSets.size(); i++)
@@ -181,9 +194,12 @@ void ShAPP::run()
 			.writeImage(1, &normalImageInfo)
 			.writeImage(2, &emissiveImageInfo)
 			.writeImage(3, &depthImageInfo)
+#ifdef SHADOW
 			.writeImage(4, &shadowImageInfo)
+#endif
+
 #ifndef  CALC_POSITION
-			.writeImage(5, &psotionImageInfo)
+			.writeImage(positionindex, &psotionImageInfo)
 #endif // ! CALC_POSITION
 			.build(imageDescriptorSets[i]);
 	}
@@ -301,11 +317,14 @@ void ShAPP::run()
 			cameraBuffers[frameIndex]->writeToBuffer(&cameraubo);
 			cameraBuffers[frameIndex]->flush();
 
+#ifdef  SHADOW
 			// shadow pass
 			shadowRenderSystem.setupLight(pointLightGO, frameIndex);
 			shadowPass.beginRenderPass(commandBuffer);
 			shadowRenderSystem.renderGameObjects(frameInfo);
 			shadowPass.endRenderPass(commandBuffer);
+#endif //  SHADOW
+
 
 #ifdef DEFERRENDERING
 			// base pass

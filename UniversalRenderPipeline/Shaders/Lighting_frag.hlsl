@@ -42,6 +42,8 @@ cbuffer cameraubo : register(b1)
     CameraExtentUBO cameraubo;
 }
 
+#ifdef SHADOW
+
 struct ShadowUBO
 {
     float4x4 lightVP;
@@ -52,6 +54,8 @@ cbuffer shadowUbo : register(b2)
 {
     ShadowUBO shadowUbo;
 }
+
+#endif
 
 Texture2D textureColor : register(t0, space1);
 SamplerState samplerColor : register(s0, space1);
@@ -65,13 +69,19 @@ SamplerState samplerEmissive : register(s2, space1);
 Texture2D textureDepth : register(t3, space1);
 SamplerState samplerDepth : register(s3, space1);
 
+#ifdef SHADOW 
 Texture2D textureShadow : register(t4, space1);
 SamplerState samplerShadow : register(s4, space1);
+#define TN t5
+#else
+#define TN t4
+#endif
 
 #ifndef CALC_POSITOIN
-Texture2D texturePosition : register(t5, space1);
-SamplerState samplerPosition : register(s5, space1);
+Texture2D texturePosition : register(TN, space1);
+SamplerState samplerPosition : register(TN, space1);
 #endif
+
 
 #include "shadow.hlsl"
 #include "common.hlsl"
@@ -111,14 +121,15 @@ float4 main(VSOutput input) : SV_TARGET
     float3 viewPos = ReconstructWorldPos(uv, ldepth, cameraubo.leftTop.xyz, cameraubo.left2Right.xyz, cameraubo.top2bottom.xyz, ubo.camereInfo.z);
     float3 worldPos1 = viewPos + ubo.viewPos.xyz;
     
-    //return float4(worldPos1, 1.0f);
-    
+    float shadow = 1.0f;
+#ifdef SHADOW 
     float3 biasPos = worldPos + normal * shadowUbo.shadowBias.x;
     float4 shadowCoords = mul(shadowUbo.lightVP, float4(biasPos, 1.0f));
-    float shadow = getShadow(shadowCoords, textureShadow, samplerShadow);
+    shadow = getShadow(shadowCoords, textureShadow, samplerShadow);
+#endif
     
     float3 viewDir = normalize(ubo.viewPos.xyz - worldPos);
-    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, 1.0f, worldPos);
+    float3 Lo = DirectLighting(normal, viewDir, albedo, F0, roughness, metallic, shadow, worldPos);
     
     Lo = pow(Lo, float3(0.45f, 0.45f, 0.45f));
     

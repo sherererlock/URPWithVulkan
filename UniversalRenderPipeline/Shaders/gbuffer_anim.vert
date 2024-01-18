@@ -30,9 +30,10 @@ uniform UniformBufferObject
     int numLights;
 } ubo;
 
-layout(set = 2, binding = 0) uniform nodeMatrices {
+layout(set = 2, binding = 0)
+uniform nodeMatrices {
 	mat4 nodeMatrice;
-};
+}nodebo;
 
 layout(push_constant) uniform PushConsts{
     mat4 modelMatrix;
@@ -41,8 +42,9 @@ layout(push_constant) uniform PushConsts{
 
 void main()
 {
-    oPosition = (primitive.modelMatrix * nodeMatrice * vec4(Pos, 1.0)).xyz;
-    mat3 mat = mat3(primitive.modelMatrix * nodeMatrice);
+    oPosition = (nodebo.nodeMatrice * vec4(Pos, 1.0)).xyz;
+    mat3 mat = mat3(nodebo.nodeMatrice);
+    mat = transpose(inverse(mat3(mat)));
     oNormal = normalize(mat * Normal);
     oUV = UV;
     oTangent = normalize(mat * Tangent);

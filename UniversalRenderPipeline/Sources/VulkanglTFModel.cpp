@@ -1594,8 +1594,8 @@ void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t
 {
 	if (node->mesh) {
 		for (Primitive* primitive : node->mesh->primitives) {
-			//if (primitive->indexCount != 18)
-			//	continue;
+			if (primitive->indexCount != 2736)
+				continue;
 
 			bool skip = false;
 			const vkglTF::Material& material = primitive->material;
@@ -1695,6 +1695,13 @@ void vkglTF::Model::updateAnimation(uint32_t index, float time)
 					case vkglTF::AnimationChannel::PathType::TRANSLATION: {
 						glm::vec4 trans = glm::mix(sampler.outputsVec4[i], sampler.outputsVec4[i + 1], u);
 						channel.node->translation = glm::vec3(trans);
+						Node* node = channel.node;
+						if (node->mesh && node->mesh->primitives[0]->indexCount == 2736)
+						{
+							std::cout << "Update transition: " << channel.node->translation.x << " " << channel.node->translation.x << " " 
+								<< channel.node->translation.z << " count " << node->mesh->primitives[0]->indexCount << std::endl;
+						}
+
 						break;
 					}
 					case vkglTF::AnimationChannel::PathType::SCALE: {
