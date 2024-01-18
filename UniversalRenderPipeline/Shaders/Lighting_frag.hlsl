@@ -113,8 +113,6 @@ float4 main(VSOutput input) : SV_TARGET
     
     //return float4(worldPos1, 1.0f);
     
-    worldPos = worldPos1;
-    
     float3 biasPos = worldPos + normal * shadowUbo.shadowBias.x;
     float4 shadowCoords = mul(shadowUbo.lightVP, float4(biasPos, 1.0f));
     float shadow = getShadow(shadowCoords, textureShadow, samplerShadow);

@@ -1,6 +1,6 @@
 #pragma once
 #include "RenderSystem.h"
-
+#include "ShDescriptors.h"
 class ShadowRenderSystem;
 
 class GltfRenderSystem : public RenderSystem

@@ -16,8 +16,11 @@
 #include "VulkanglTFModel.h"
 #include "VulkanInitializers.hpp"
 #include "Tools.h"
+#include "macros.hlsl"
 
 VkDescriptorSetLayout vkglTF::descriptorSetLayoutImage = VK_NULL_HANDLE;
+VkDescriptorSetLayout vkglTF::descriptorSetLayoutSkin = VK_NULL_HANDLE;
+VkDescriptorSetLayout vkglTF::descriptorSetLayoutAnim = VK_NULL_HANDLE;
 VkDescriptorSetLayout vkglTF::descriptorSetLayoutUbo = VK_NULL_HANDLE;
 VkMemoryPropertyFlags vkglTF::memoryPropertyFlags = 0;
 uint32_t vkglTF::descriptorBindingFlags = vkglTF::DescriptorBindingFlags::ImageBaseColor |
@@ -555,6 +558,30 @@ vkglTF::Mesh::~Mesh() {
     }
 }
 
+void vkglTF::Mesh::createDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout)
+{
+	VkDescriptorSetAllocateInfo descriptorSetAllocInfo{};
+	descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	descriptorSetAllocInfo.descriptorPool = descriptorPool;
+	descriptorSetAllocInfo.pSetLayouts = &descriptorSetLayout;
+	descriptorSetAllocInfo.descriptorSetCount = 1;
+	//for (int i = 0; i < 2; i++)
+	{
+		VK_CHECK_RESULT(vkAllocateDescriptorSets(device->device(), &descriptorSetAllocInfo, &uniformBuffer.descriptorSet));
+
+		VkWriteDescriptorSet writeDescriptorSet{};
+		writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writeDescriptorSet.descriptorCount = 1;
+		writeDescriptorSet.dstSet = uniformBuffer.descriptorSet;
+		writeDescriptorSet.dstBinding = 0;
+		writeDescriptorSet.pImageInfo = nullptr;
+		writeDescriptorSet.pBufferInfo = &uniformBuffer.descriptor;
+
+		vkUpdateDescriptorSets(device->device(), 1, &writeDescriptorSet, 0, nullptr);
+	}
+}
+
 /*
 	glTF node
 */
@@ -576,17 +603,17 @@ void vkglTF::Node::update() {
 	if (mesh) {
 		glm::mat4 m = getMatrix();
 		if (skin) {
-			mesh->uniformBlock.matrix = m;
-			// Update join matrices
-			glm::mat4 inverseTransform = glm::inverse(m);
-			for (size_t i = 0; i < skin->joints.size(); i++) {
-				vkglTF::Node *jointNode = skin->joints[i];
-				glm::mat4 jointMat = jointNode->getMatrix() * skin->inverseBindMatrices[i];
-				jointMat = inverseTransform * jointMat;
-				mesh->uniformBlock.jointMatrix[i] = jointMat;
-			}
-			mesh->uniformBlock.jointcount = (float)skin->joints.size();
-			memcpy(mesh->uniformBuffer.mapped, &mesh->uniformBlock, sizeof(mesh->uniformBlock));
+			//mesh->uniformBlock.matrix = m;
+			//// Update join matrices
+			//glm::mat4 inverseTransform = glm::inverse(m);
+			//for (size_t i = 0; i < skin->joints.size(); i++) {
+			//	vkglTF::Node *jointNode = skin->joints[i];
+			//	glm::mat4 jointMat = jointNode->getMatrix() * skin->inverseBindMatrices[i];
+			//	jointMat = inverseTransform * jointMat;
+			//	mesh->uniformBlock.jointMatrix[i] = jointMat;
+			//}
+			//mesh->uniformBlock.jointcount = (float)skin->joints.size();
+			//memcpy(mesh->uniformBuffer.mapped, &mesh->uniformBlock, sizeof(mesh->uniformBlock));
 		} else {
 			memcpy(mesh->uniformBuffer.mapped, &m, sizeof(glm::mat4));
 		}
@@ -665,7 +692,12 @@ std::vector<VkVertexInputAttributeDescription> vkglTF::Vertex::getAttributeDescr
 
 std::vector<VkVertexInputAttributeDescription> vkglTF::Vertex::getAttributeDescriptions()
 {
-	std::vector<VertexComponent> components{vkglTF::VertexComponent::Position, vkglTF::VertexComponent::Normal, vkglTF::VertexComponent::UV, vkglTF::VertexComponent::Tangent};
+#ifdef CPU_SKIN
+	std::vector<VertexComponent> components{vkglTF::VertexComponent::Position, vkglTF::VertexComponent::Normal, vkglTF::VertexComponent::UV, vkglTF::VertexComponent::Tangent, vkglTF::VertexComponent::Joint0, vkglTF::VertexComponent::Weight0 };
+#else
+	std::vector<VertexComponent> components{ vkglTF::VertexComponent::Position, vkglTF::VertexComponent::Normal, vkglTF::VertexComponent::UV, vkglTF::VertexComponent::Tangent };
+#endif
+
 	Vertex::vertexInputAttributeDescriptions = Vertex::inputAttributeDescriptions(0, components);
 
 	return Vertex::vertexInputAttributeDescriptions;
@@ -822,6 +854,14 @@ vkglTF::Model::~Model()
 		vkDestroyDescriptorSetLayout(device->device(), descriptorSetLayoutImage, nullptr);
 		descriptorSetLayoutImage = VK_NULL_HANDLE;
 	}
+	if (descriptorSetLayoutSkin != VK_NULL_HANDLE) {
+		vkDestroyDescriptorSetLayout(device->device(), descriptorSetLayoutSkin, nullptr);
+		descriptorSetLayoutSkin = VK_NULL_HANDLE;
+	}
+	if (descriptorSetLayoutAnim != VK_NULL_HANDLE) {
+		vkDestroyDescriptorSetLayout(device->device(), descriptorSetLayoutAnim, nullptr);
+		descriptorSetLayoutAnim = VK_NULL_HANDLE;
+	}
 	vkDestroyDescriptorPool(device->device(), descriptorPool, nullptr);
 	emptyTexture.destroy();
 }
@@ -870,6 +910,7 @@ void vkglTF::Model::loadNode(vkglTF::Node *parent, const tinygltf::Node &node, u
 		const tinygltf::Mesh mesh = model.meshes[node.mesh];
 		Mesh *newMesh = new Mesh(device, newNode->matrix);
 		newMesh->name = mesh.name;
+
 		for (size_t j = 0; j < mesh.primitives.size(); j++) {
 			const tinygltf::Primitive &primitive = mesh.primitives[j];
 			if (primitive.indices < 0) {
@@ -1054,6 +1095,18 @@ void vkglTF::Model::loadSkins(tinygltf::Model &gltfModel)
 			newSkin->inverseBindMatrices.resize(accessor.count);
 			memcpy(newSkin->inverseBindMatrices.data(), &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(glm::mat4));
 		}
+
+#ifdef CPU_SKIN
+		for (int i = 0; i < 2; i++)
+		{
+			newSkin->ssbos[i] = std::make_unique<ShBuffer>(*device, sizeof(glm::mat4) * newSkin->inverseBindMatrices.size(), 1, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+			newSkin->ssbos[i]->map();
+			newSkin->ssbos[i]->writeToBuffer(newSkin->inverseBindMatrices.data());
+			newSkin->ssbos[i]->flush();
+		}
+
+		newSkin->createDescriptorSet(device->device(), descriptorPool, descriptorSetLayoutSkin);
+#endif
 
 		skins.push_back(newSkin);
 	}
@@ -1241,6 +1294,30 @@ void vkglTF::Model::loadAnimations(tinygltf::Model &gltfModel)
 
 void vkglTF::Model::loadFromFile(std::string filename, ShDevice *device, VkQueue transferQueue, uint32_t fileLoadingFlags, float scale)
 {
+	if (descriptorSetLayoutSkin == VK_NULL_HANDLE)
+	{
+		VkDescriptorSetLayoutBinding layoutBinding =
+			Initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0);
+
+		VkDescriptorSetLayoutCreateInfo descriptorLayoutCI{};
+		descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		descriptorLayoutCI.bindingCount = 1;
+		descriptorLayoutCI.pBindings = &layoutBinding;
+		VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device->device(), &descriptorLayoutCI, nullptr, &descriptorSetLayoutSkin));
+	}
+
+	if (descriptorSetLayoutAnim == VK_NULL_HANDLE)
+	{
+		VkDescriptorSetLayoutBinding layoutBinding =
+			Initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0);
+
+		VkDescriptorSetLayoutCreateInfo descriptorLayoutCI{};
+		descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		descriptorLayoutCI.bindingCount = 1;
+		descriptorLayoutCI.pBindings = &layoutBinding;
+		VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device->device(), &descriptorLayoutCI, nullptr, &descriptorSetLayoutAnim));
+	}
+
 	tinygltf::Model gltfModel;
 	tinygltf::TinyGLTF gltfContext;
 	if (fileLoadingFlags & FileLoadingFlags::DontLoadImages) {
@@ -1496,6 +1573,7 @@ void vkglTF::Model::loadFromFile(std::string filename, ShDevice *device, VkQueue
 			descriptorLayoutCI.pBindings = setLayoutBindings.data();
 			VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device->device(), &descriptorLayoutCI, nullptr, &descriptorSetLayoutImage));
 		}
+
 		for (auto& material : materials) {
 			if (material.baseColorTexture != nullptr) {
 				material.createDescriptorSet(descriptorPool, vkglTF::descriptorSetLayoutImage, descriptorBindingFlags);
@@ -1512,7 +1590,7 @@ void vkglTF::Model::bindBuffers(VkCommandBuffer commandBuffer)
 	buffersBound = true;
 }
 
-void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t renderFlags, VkPipelineLayout pipelineLayout, uint32_t bindImageSet)
+void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t renderFlags, VkPipelineLayout pipelineLayout, uint32_t bindImageSet, uint32_t idx)
 {
 	if (node->mesh) {
 		for (Primitive* primitive : node->mesh->primitives) {
@@ -1521,6 +1599,7 @@ void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t
 
 			bool skip = false;
 			const vkglTF::Material& material = primitive->material;
+			const vkglTF::Skin* skin = node->skin;
 			if (renderFlags & RenderFlags::RenderOpaqueNodes) {
 				skip = (material.alphaMode != Material::ALPHAMODE_OPAQUE);
 			}
@@ -1534,16 +1613,23 @@ void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t
 				if (renderFlags & RenderFlags::BindImages) {
 					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, bindImageSet, 1, &material.descriptorSet, 0, nullptr);
 				}
+
+				if(renderFlags & RenderFlags::BindSkin && skin != nullptr)
+					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &skin->ssboSets[idx], 0, nullptr);
+
+				if (renderFlags & RenderFlags::BindAnim)
+					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &node->mesh->uniformBuffer.descriptorSet, 0, nullptr);
+
 				vkCmdDrawIndexed(commandBuffer, primitive->indexCount, 1, primitive->firstIndex, 0, 0);
 			}
 		}
 	}
 	for (auto& child : node->children) {
-		drawNode(child, commandBuffer, renderFlags, pipelineLayout, bindImageSet);
+		drawNode(child, commandBuffer, renderFlags, pipelineLayout, bindImageSet, idx);
 	}
 }
 
-void vkglTF::Model::draw(VkCommandBuffer commandBuffer, uint32_t renderFlags, VkPipelineLayout pipelineLayout, uint32_t bindImageSet)
+void vkglTF::Model::draw(VkCommandBuffer commandBuffer, uint32_t renderFlags, VkPipelineLayout pipelineLayout, uint32_t bindImageSet, uint32_t idx)
 {
 	if (!buffersBound) {
 		const VkDeviceSize offsets[1] = {0};
@@ -1551,7 +1637,7 @@ void vkglTF::Model::draw(VkCommandBuffer commandBuffer, uint32_t renderFlags, Vk
 		vkCmdBindIndexBuffer(commandBuffer, indices.buffer, 0, VK_INDEX_TYPE_UINT32);
 	}
 	for (auto& node : nodes) {
-		drawNode(node, commandBuffer, renderFlags, pipelineLayout, bindImageSet);
+		drawNode(node, commandBuffer, renderFlags, pipelineLayout, bindImageSet, idx);
 	}
 }
 
@@ -1692,5 +1778,31 @@ void vkglTF::Model::prepareNodeDescriptor(vkglTF::Node* node, VkDescriptorSetLay
 	}
 	for (auto& child : node->children) {
 		prepareNodeDescriptor(child, descriptorSetLayout);
+	}
+}
+
+void vkglTF::Skin::createDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout)
+{
+	VkDescriptorSetAllocateInfo descriptorSetAllocInfo{};
+	descriptorSetAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	descriptorSetAllocInfo.descriptorPool = descriptorPool;
+	descriptorSetAllocInfo.pSetLayouts = &descriptorSetLayout;
+	descriptorSetAllocInfo.descriptorSetCount = 1;
+	for (int i = 0; i < 2; i++)
+	{
+		VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &descriptorSetAllocInfo, &ssboSets[i]));
+
+		VkDescriptorBufferInfo bufferInfo = ssbos[i]->descriptorInfo();
+
+		VkWriteDescriptorSet writeDescriptorSet{};
+		writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writeDescriptorSet.descriptorCount = 1;
+		writeDescriptorSet.dstSet = ssboSets[i];
+		writeDescriptorSet.dstBinding = 0;
+		writeDescriptorSet.pImageInfo = nullptr;
+		writeDescriptorSet.pBufferInfo = &bufferInfo;
+
+		vkUpdateDescriptorSets(device, 1, &writeDescriptorSet, 0, nullptr);
 	}
 }

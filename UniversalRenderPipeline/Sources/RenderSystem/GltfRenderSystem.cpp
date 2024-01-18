@@ -1,6 +1,7 @@
 #include "GltfRenderSystem.h"
 #include "VulkanglTFModel.h"
 #include "ShadowRenderSystem.h"
+#include "macros.hlsl"
 
 // libs
 #define GLM_FORCE_RADIANS
@@ -46,6 +47,15 @@ void GltfRenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout>& 
 	{
 		layouts.push_back(shadowRenderSystem->getLightSetLayout());
 	}
+
+#ifdef CPU_SKIN
+	layouts.push_back(vkglTF::descriptorSetLayoutSkin);
+#endif // CPU_SKIN
+
+#ifdef CPU_ANIM
+	layouts.push_back(vkglTF::descriptorSetLayoutAnim);
+#endif
+
 	RenderSystem::createPipelineLayout(layouts);
 }
 
@@ -96,6 +106,12 @@ void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 			sizeof(SimplePushConstantData),
 			&push);
 
-		obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages, pipelineLayout, 1);
+#ifdef CPU_SKIN
+	obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages | RenderFlags::BindSkin, pipelineLayout, 1, frameInfo.frameIndex);
+#elifdef CPU_ANIM
+	obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages | RenderFlags::BindAnim, pipelineLayout, 1, frameInfo.frameIndex);
+#else
+	obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages, pipelineLayout, 1, frameInfo.frameIndex);
+#endif
 	}
 }

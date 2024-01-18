@@ -34,6 +34,8 @@
 
 #include "vulkan/vulkan.h"
 #include "ShDevice.h"
+#include "ShBuffer.h"
+#include "ShDescriptors.h"
 
 namespace vkglTF
 {
@@ -46,6 +48,8 @@ namespace vkglTF
 	};
 
 	extern VkDescriptorSetLayout descriptorSetLayoutImage;
+	extern VkDescriptorSetLayout descriptorSetLayoutSkin;
+	extern VkDescriptorSetLayout descriptorSetLayoutAnim;
 	extern VkDescriptorSetLayout descriptorSetLayoutUbo;
 	extern VkMemoryPropertyFlags memoryPropertyFlags;
 	extern uint32_t descriptorBindingFlags;
@@ -138,12 +142,13 @@ namespace vkglTF
 
 		struct UniformBlock {
 			glm::mat4 matrix;
-			glm::mat4 jointMatrix[64]{};
-			float jointcount{ 0 };
+			//glm::mat4 jointMatrix[64]{};
+			//float jointcount{ 0 };
 		} uniformBlock;
 
 		Mesh(ShDevice* device, glm::mat4 matrix);
 		~Mesh();
+		void createDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout);
 	};
 
 	/*
@@ -154,6 +159,10 @@ namespace vkglTF
 		Node* skeletonRoot = nullptr;
 		std::vector<glm::mat4> inverseBindMatrices;
 		std::vector<Node*> joints;
+		std::array<std::unique_ptr<ShBuffer>, 2> ssbos;
+		std::array<VkDescriptorSet, 2> ssboSets;
+
+		void createDescriptorSet(VkDevice device, VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout);
 	};
 
 	/*
@@ -247,7 +256,9 @@ namespace vkglTF
 		BindImages = 0x00000001,
 		RenderOpaqueNodes = 0x00000002,
 		RenderAlphaMaskedNodes = 0x00000004,
-		RenderAlphaBlendedNodes = 0x00000008
+		RenderAlphaBlendedNodes = 0x00000008,
+		BindSkin = 0x00000010,
+		BindAnim = 0x00000011,
 	};
 
 	/*
@@ -303,8 +314,8 @@ namespace vkglTF
 		void loadAnimations(tinygltf::Model& gltfModel);
 		void loadFromFile(std::string filename, ShDevice* device, VkQueue transferQueue, uint32_t fileLoadingFlags = vkglTF::FileLoadingFlags::None, float scale = 1.0f);
 		void bindBuffers(VkCommandBuffer commandBuffer);
-		void drawNode(Node* node, VkCommandBuffer commandBuffer, uint32_t renderFlags = 0, VkPipelineLayout pipelineLayout = VK_NULL_HANDLE, uint32_t bindImageSet = 1);
-		void draw(VkCommandBuffer commandBuffer, uint32_t renderFlags = 0, VkPipelineLayout pipelineLayout = VK_NULL_HANDLE, uint32_t bindImageSet = 1);
+		void drawNode(Node* node, VkCommandBuffer commandBuffer, uint32_t renderFlags = 0, VkPipelineLayout pipelineLayout = VK_NULL_HANDLE, uint32_t bindImageSet = 1, uint32_t idx = 0);
+		void draw(VkCommandBuffer commandBuffer, uint32_t renderFlags = 0, VkPipelineLayout pipelineLayout = VK_NULL_HANDLE, uint32_t bindImageSet = 1, uint32_t idx = 0);
 		void getNodeDimensions(Node* node, glm::vec3& min, glm::vec3& max);
 		void getSceneDimensions();
 		void updateAnimation(uint32_t index, float time);

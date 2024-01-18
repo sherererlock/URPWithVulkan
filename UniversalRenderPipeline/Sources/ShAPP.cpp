@@ -102,12 +102,24 @@ void ShAPP::run()
 	//simpleRenderSystem.createPipelineLayout(setlayouts);
 	//simpleRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
 
+#ifndef DEFERRENDERING
 	GltfRenderSystem gltfRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(), setlayouts, "shaders/spv/pbr_vert.hlsl.spv", "shaders/spv/pbr_frag.hlsl.spv", &shadowRenderSystem };
+#endif
+
 #ifdef  CALC_POSITION
-	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_vert.hlsl.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 3};
+	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_skin.vert.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 3};
+#else
+	
+#ifdef CPU_SKIN
+	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_skin.vert.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 4 };
+#elif defined CPU_ANIM
+	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_anim.vert.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 4 };
 #else
 	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_vert.hlsl.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 4 };
 #endif
+
+#endif
+
 	auto lightingSetLayout0 =
 		ShDescriptorSetLayout::Builder(shDevice)
 		.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
@@ -227,6 +239,14 @@ void ShAPP::run()
 		float delta = (float)frameTime / 1000.0f;
 		camera.update(delta);
 		input.update(delta);
+		for (auto& kv : gameObjects)
+		{
+			auto& obj = kv.second;
+			if (obj.gltfmodel == nullptr)
+				continue;
+
+			obj.gltfmodel->updateAnimation(0, delta);
+		}
 
 		float aspect = shRenderer.getAspectRatio();
 
