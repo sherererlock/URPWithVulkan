@@ -55,7 +55,7 @@ ShAPP::ShAPP() {
 
 ShAPP::~ShAPP() {}
 
-void ShAPP::run() 
+void ShAPP::run()
 {
 	std::vector<std::unique_ptr<ShBuffer>> uboBuffers(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
 
@@ -86,14 +86,14 @@ void ShAPP::run()
 
 #ifdef SHADOW
 	ShadowPass shadowPass{ shDevice,ShadowResolution, ShadowResolution };
-	ShadowRenderSystem shadowRenderSystem{ shDevice, shadowPass.getRenderPass(), "shaders/spv/shadow_vert.hlsl.spv", "shaders/spv/shadow_frag.hlsl.spv", shadowPass.getShadowMapImageInfo()};
+	ShadowRenderSystem shadowRenderSystem{ shDevice, shadowPass.getRenderPass(), "shaders/spv/shadow_vert.hlsl.spv", "shaders/spv/shadow_frag.hlsl.spv", shadowPass.getShadowMapImageInfo() };
 	shadowRenderSystem.setupDescriptorSet(*globalPool);
 #endif
 
 	BasePass basePass{ shDevice, WIDTH, HEIGHT };
-	LightingPass lightPass{ shDevice, WIDTH, HEIGHT, shRenderer.getFormat()};
+	LightingPass lightPass{ shDevice, WIDTH, HEIGHT, shRenderer.getFormat() };
 
-	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout()};
+	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout() };
 
 	//SimpleRenderSystem simpleRenderSystem{
 	//	shDevice,
@@ -103,23 +103,29 @@ void ShAPP::run()
 	//simpleRenderSystem.createPipelineLayout(setlayouts);
 	//simpleRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
 
+	std::string vs_shader = "shaders/spv/gbuffer_vert.hlsl.spv";
+	std::string ps_shader = "shaders/spv/gbuffer_frag.hlsl.spv";
+	uint32_t attachmentCount = 3;
+	ShadowRenderSystem* shadowRenderSystemPtr = nullptr;
+
+#ifndef CALC_POSITION
+	attachmentCount = 4;
+#endif
+
 #ifndef DEFERRENDERING
-	GltfRenderSystem gltfRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(), setlayouts, "shaders/spv/pbr_vert.hlsl.spv", "shaders/spv/pbr_frag.hlsl.spv", &shadowRenderSystem };
+	vs_shader = "shaders/spv/pbr_vert.hlsl.spv";
+	ps_shader = "shaders/spv/pbr_frag.hlsl.spv";
+	shadowRenderSystemPtr = &shadowRenderSystem;
+	attachmentCount = 1;
 #endif
 
-#ifdef  CALC_POSITION
-	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_skin.vert.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 3};
-#else
-	
 #ifdef CPU_SKIN
-	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_skin.vert.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 4 };
+	vs_shader = "shaders/spv/gbuffer_skin.vert.spv";
 #elif defined CPU_ANIM
-	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_anim.vert.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 4 };
-#else
-	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, "shaders/spv/gbuffer_vert.hlsl.spv", "shaders/spv/gbuffer_frag.hlsl.spv", nullptr, 4 };
+	vs_shader = "shaders/spv/gbuffer_anim.vert.spv";
 #endif
 
-#endif
+	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, vs_shader, ps_shader, shadowRenderSystemPtr, attachmentCount };
 
 	auto lightingSetLayout0 =
 		ShDescriptorSetLayout::Builder(shDevice)
@@ -391,10 +397,11 @@ void ShAPP::loadGameObjects()
 	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices;
 	std::shared_ptr<Model> gltfModel = std::make_shared<Model>();
 	gltfModel->loadFromFile(MODEL_PATH, &shDevice, shDevice.graphicsQueue(), glTFLoadingFlags);
+	gltfModel->updateAnimation(0, 0.0f);
 
 	auto gltfgo = ShGameObject::createGameObject();
 	gltfgo.gltfmodel = gltfModel;
-	gltfgo.transform.translation = { 0.f, -0.5f, 0.f };
+	gltfgo.transform.translation = { 0.f, 0.0f, 0.f };
 	gltfgo.transform.scale = { 1.f, 1.f, 1.f };
 	gameObjects.emplace(gltfgo.getId(), std::move(gltfgo));
 

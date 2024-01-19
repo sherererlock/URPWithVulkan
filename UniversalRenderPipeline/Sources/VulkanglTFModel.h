@@ -182,6 +182,7 @@ namespace vkglTF
 		glm::quat rotation{};
 		glm::mat4 localMatrix();
 		glm::mat4 getMatrix();
+		bool animated = false;
 		void update();
 		~Node();
 	};
@@ -215,6 +216,7 @@ namespace vkglTF
 		std::vector<AnimationChannel> channels;
 		float start = std::numeric_limits<float>::max();
 		float end = std::numeric_limits<float>::min();
+		float currentTime = 0.0f;
 	};
 
 	/*

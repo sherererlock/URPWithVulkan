@@ -586,6 +586,8 @@ void vkglTF::Mesh::createDescriptorSet(VkDescriptorPool descriptorPool, VkDescri
 	glTF node
 */
 glm::mat4 vkglTF::Node::localMatrix() {
+	//return animated ? glm::translate(glm::mat4(1.0f), translation) * glm::mat4(rotation) * glm::scale(glm::mat4(1.0f), scale) : matrix;
+
 	return glm::translate(glm::mat4(1.0f), translation) * glm::mat4(rotation) * glm::scale(glm::mat4(1.0f), scale) * matrix;
 }
 
@@ -615,7 +617,9 @@ void vkglTF::Node::update() {
 			//mesh->uniformBlock.jointcount = (float)skin->joints.size();
 			//memcpy(mesh->uniformBuffer.mapped, &mesh->uniformBlock, sizeof(mesh->uniformBlock));
 		} else {
-			memcpy(mesh->uniformBuffer.mapped, &m, sizeof(glm::mat4));
+
+			//if (mesh->primitives[0]->indexCount == 2736)
+				memcpy(mesh->uniformBuffer.mapped, &m, sizeof(glm::mat4));
 		}
 	}
 
@@ -871,7 +875,11 @@ void vkglTF::Model::loadNode(vkglTF::Node *parent, const tinygltf::Node &node, u
 	vkglTF::Node *newNode = new Node{};
 	newNode->index = nodeIndex;
 	newNode->parent = parent;
+	if (node.name == "node_Scheibe_-15360")
+		int i = 1;
+
 	newNode->name = node.name;
+	std::cout << node.name << std::endl;
 	newNode->skinIndex = node.skin;
 	newNode->matrix = glm::mat4(1.0f);
 
@@ -880,17 +888,21 @@ void vkglTF::Model::loadNode(vkglTF::Node *parent, const tinygltf::Node &node, u
 	if (node.translation.size() == 3) {
 		translation = glm::make_vec3(node.translation.data());
 		newNode->translation = translation;
+		//newNode->matrix = glm::translate(newNode->matrix, translation);
 	}
 	glm::mat4 rotation = glm::mat4(1.0f);
 	if (node.rotation.size() == 4) {
 		glm::quat q = glm::make_quat(node.rotation.data());
 		newNode->rotation = glm::mat4(q);
+		//newNode->matrix *= glm::mat4(q);
 	}
 	glm::vec3 scale = glm::vec3(1.0f);
 	if (node.scale.size() == 3) {
 		scale = glm::make_vec3(node.scale.data());
 		newNode->scale = scale;
+		//newNode->matrix = glm::scale(newNode->matrix, scale);
 	}
+	//newNode->matrix = glm::translate(glm::mat4(1.0f), newNode->translation) * glm::mat4(newNode->rotation) * glm::scale(glm::mat4(1.0f), newNode->scale);
 	if (node.matrix.size() == 16) {
 		newNode->matrix = glm::make_mat4x4(node.matrix.data());
 		if (globalscale != 1.0f) {
@@ -1590,12 +1602,25 @@ void vkglTF::Model::bindBuffers(VkCommandBuffer commandBuffer)
 	buffersBound = true;
 }
 
+struct SimplePushConstantData1 {
+	glm::mat4 modelMatrix{ 1.f };
+	glm::mat4 normalMatrix{ 1.f };
+};
+
 void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t renderFlags, VkPipelineLayout pipelineLayout, uint32_t bindImageSet, uint32_t idx)
 {
 	if (node->mesh) {
 		for (Primitive* primitive : node->mesh->primitives) {
-			if (primitive->indexCount != 2736)
+			if (primitive->indexCount != 18)
 				continue;
+
+			glm::mat4 nodeMatrix = node->getMatrix();
+
+			//Node* currentParent = node->parent;
+			//while (currentParent) {
+			//	nodeMatrix = currentParent->matrix * nodeMatrix;
+			//	currentParent = currentParent->parent;
+			//}
 
 			bool skip = false;
 			const vkglTF::Material& material = primitive->material;
@@ -1619,6 +1644,18 @@ void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t
 
 				if (renderFlags & RenderFlags::BindAnim)
 					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &node->mesh->uniformBuffer.descriptorSet, 0, nullptr);
+
+				//SimplePushConstantData1 push{};
+				//push.modelMatrix = nodeMatrix;
+				//push.normalMatrix = nodeMatrix;
+
+				//vkCmdPushConstants(
+				//	commandBuffer,
+				//	pipelineLayout,
+				//	VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				//	0,
+				//	sizeof(SimplePushConstantData1),
+				//	&push);
 
 				vkCmdDrawIndexed(commandBuffer, primitive->indexCount, 1, primitive->firstIndex, 0, 0);
 			}
@@ -1679,7 +1716,12 @@ void vkglTF::Model::updateAnimation(uint32_t index, float time)
 		return;
 	}
 	Animation &animation = animations[index];
-
+	animation.currentTime += time;
+	if (animation.currentTime > animation.end)
+	{
+		animation.currentTime -= animation.end;
+	}
+	time = animation.currentTime;
 	bool updated = false;
 	for (auto& channel : animation.channels) {
 		vkglTF::AnimationSampler &sampler = animation.samplers[channel.samplerIndex];
@@ -1695,18 +1737,14 @@ void vkglTF::Model::updateAnimation(uint32_t index, float time)
 					case vkglTF::AnimationChannel::PathType::TRANSLATION: {
 						glm::vec4 trans = glm::mix(sampler.outputsVec4[i], sampler.outputsVec4[i + 1], u);
 						channel.node->translation = glm::vec3(trans);
-						Node* node = channel.node;
-						if (node->mesh && node->mesh->primitives[0]->indexCount == 2736)
-						{
-							std::cout << "Update transition: " << channel.node->translation.x << " " << channel.node->translation.x << " " 
-								<< channel.node->translation.z << " count " << node->mesh->primitives[0]->indexCount << std::endl;
-						}
+						channel.node->animated = true;
 
 						break;
 					}
 					case vkglTF::AnimationChannel::PathType::SCALE: {
 						glm::vec4 trans = glm::mix(sampler.outputsVec4[i], sampler.outputsVec4[i + 1], u);
 						channel.node->scale = glm::vec3(trans);
+						channel.node->animated = true;
 						break;
 					}
 					case vkglTF::AnimationChannel::PathType::ROTATION: {
@@ -1721,6 +1759,7 @@ void vkglTF::Model::updateAnimation(uint32_t index, float time)
 						q2.z = sampler.outputsVec4[i + 1].z;
 						q2.w = sampler.outputsVec4[i + 1].w;
 						channel.node->rotation = glm::normalize(glm::slerp(q1, q2, u));
+						channel.node->animated = true;
 						break;
 					}
 					}
