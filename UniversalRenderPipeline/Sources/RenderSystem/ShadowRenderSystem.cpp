@@ -1,5 +1,6 @@
 #include "ShadowRenderSystem.h"
 #include "ShApp.h"
+#include "macros.hlsl"
 ShadowRenderSystem::ShadowRenderSystem(ShDevice& device, VkRenderPass renderPass, std::string vertexShader, std::string fragmentShader, VkDescriptorImageInfo imageInfo)
 	: RenderSystem(device, renderPass, vertexShader, fragmentShader), shadowMapInfo(imageInfo)
 {
@@ -9,6 +10,15 @@ ShadowRenderSystem::ShadowRenderSystem(ShDevice& device, VkRenderPass renderPass
 		addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT).build();
 
 	std::vector<VkDescriptorSetLayout> setlayouts{ setLayout->getDescriptorSetLayout()};
+
+#ifdef CPU_SKIN
+	setlayouts.push_back(vkglTF::descriptorSetLayoutSkin);
+#endif // CPU_SKIN
+
+#ifdef CPU_ANIM
+	setlayouts.push_back(vkglTF::descriptorSetLayoutAnim);
+#endif
+
 	createPipelineLayout(setlayouts);
 	createPipeline(renderPass);
 
@@ -109,6 +119,12 @@ void ShadowRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 			sizeof(SimplePushConstantData),
 			&push);
 
-		obj.gltfmodel->draw(frameInfo.commandBuffer);
+#ifdef CPU_SKIN
+		obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindSkin, pipelineLayout, 0, frameInfo.frameIndex);
+#elif defined CPU_ANIM
+		obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindAnim, pipelineLayout, 0, frameInfo.frameIndex);
+#else
+		obj.gltfmodel->draw(frameInfo.commandBuffer, 0, pipelineLayout, 0, frameInfo.frameIndex);
+#endif
 	}
 }

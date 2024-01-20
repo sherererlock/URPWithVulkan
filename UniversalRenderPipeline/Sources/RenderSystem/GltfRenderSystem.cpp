@@ -108,7 +108,7 @@ void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 
 #ifdef CPU_SKIN
 	obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages | RenderFlags::BindSkin, pipelineLayout, 1, frameInfo.frameIndex);
-#elifdef CPU_ANIM
+#elif defined CPU_ANIM
 	obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages | RenderFlags::BindAnim, pipelineLayout, 1, frameInfo.frameIndex);
 #else
 	obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages, pipelineLayout, 1, frameInfo.frameIndex);

@@ -394,7 +394,8 @@ void ShAPP::loadGameObjects()
 	//gameObjects.emplace(floor.getId(), std::move(floor));
 
 	//const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::FlipY;
-	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices;
+	//const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices;
+	const uint32_t glTFLoadingFlags = 0;
 	std::shared_ptr<Model> gltfModel = std::make_shared<Model>();
 	gltfModel->loadFromFile(MODEL_PATH, &shDevice, shDevice.graphicsQueue(), glTFLoadingFlags);
 	gltfModel->updateAnimation(0, 0.0f);

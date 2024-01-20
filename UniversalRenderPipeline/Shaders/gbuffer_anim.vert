@@ -42,13 +42,13 @@ layout(push_constant) uniform PushConsts{
 
 void main()
 {
-    mat4 model = primitive.modelMatrix ;
-    vec4 position = ( model * vec4(Pos, 1.0));
+    mat4 model = primitive.modelMatrix * nodebo.nodeMatrice;
+    vec4 position = (model * vec4(Pos, 1.0));
     oPosition = position.xyz;
     mat3 mat = mat3(model);
     mat = transpose(inverse(mat3(mat)));
-    oNormal = normalize(mat * Normal);
     oUV = UV;
+    oNormal = normalize(mat * Normal);
     oTangent = normalize(mat * Tangent);
     gl_Position = ubo.projection * ubo.view * position;
 }

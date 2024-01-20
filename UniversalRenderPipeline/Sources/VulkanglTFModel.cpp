@@ -875,11 +875,9 @@ void vkglTF::Model::loadNode(vkglTF::Node *parent, const tinygltf::Node &node, u
 	vkglTF::Node *newNode = new Node{};
 	newNode->index = nodeIndex;
 	newNode->parent = parent;
-	if (node.name == "node_Scheibe_-15360")
-		int i = 1;
-
+	
 	newNode->name = node.name;
-	std::cout << node.name << std::endl;
+	//std::cout << node.name << std::endl;
 	newNode->skinIndex = node.skin;
 	newNode->matrix = glm::mat4(1.0f);
 
@@ -888,21 +886,17 @@ void vkglTF::Model::loadNode(vkglTF::Node *parent, const tinygltf::Node &node, u
 	if (node.translation.size() == 3) {
 		translation = glm::make_vec3(node.translation.data());
 		newNode->translation = translation;
-		//newNode->matrix = glm::translate(newNode->matrix, translation);
 	}
 	glm::mat4 rotation = glm::mat4(1.0f);
 	if (node.rotation.size() == 4) {
 		glm::quat q = glm::make_quat(node.rotation.data());
 		newNode->rotation = glm::mat4(q);
-		//newNode->matrix *= glm::mat4(q);
 	}
 	glm::vec3 scale = glm::vec3(1.0f);
 	if (node.scale.size() == 3) {
 		scale = glm::make_vec3(node.scale.data());
 		newNode->scale = scale;
-		//newNode->matrix = glm::scale(newNode->matrix, scale);
 	}
-	//newNode->matrix = glm::translate(glm::mat4(1.0f), newNode->translation) * glm::mat4(newNode->rotation) * glm::scale(glm::mat4(1.0f), newNode->scale);
 	if (node.matrix.size() == 16) {
 		newNode->matrix = glm::make_mat4x4(node.matrix.data());
 		if (globalscale != 1.0f) {
@@ -1611,16 +1605,8 @@ void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t
 {
 	if (node->mesh) {
 		for (Primitive* primitive : node->mesh->primitives) {
-			if (primitive->indexCount != 18)
-				continue;
 
 			glm::mat4 nodeMatrix = node->getMatrix();
-
-			//Node* currentParent = node->parent;
-			//while (currentParent) {
-			//	nodeMatrix = currentParent->matrix * nodeMatrix;
-			//	currentParent = currentParent->parent;
-			//}
 
 			bool skip = false;
 			const vkglTF::Material& material = primitive->material;
@@ -1640,10 +1626,10 @@ void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t
 				}
 
 				if(renderFlags & RenderFlags::BindSkin && skin != nullptr)
-					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &skin->ssboSets[idx], 0, nullptr);
+					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, bindImageSet + 1, 1, &skin->ssboSets[idx], 0, nullptr);
 
 				if (renderFlags & RenderFlags::BindAnim)
-					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &node->mesh->uniformBuffer.descriptorSet, 0, nullptr);
+					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, bindImageSet + 1, 1, &node->mesh->uniformBuffer.descriptorSet, 0, nullptr);
 
 				//SimplePushConstantData1 push{};
 				//push.modelMatrix = nodeMatrix;

@@ -260,7 +260,7 @@ namespace vkglTF
 		RenderAlphaMaskedNodes = 0x00000004,
 		RenderAlphaBlendedNodes = 0x00000008,
 		BindSkin = 0x00000010,
-		BindAnim = 0x00000011,
+		BindAnim = 0x00000020,
 	};
 
 	/*

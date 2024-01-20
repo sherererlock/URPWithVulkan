@@ -1,3 +1,4 @@
+#include "macros.hlsl"
 
 struct VSInput
 {
@@ -14,6 +15,20 @@ cbuffer ubo : register(b0)
     GlobalUBO ubo;
 }
 
+#ifdef CPU_ANIM
+
+struct AnimUBO
+{
+    float4x4 nodeMatrix;
+};
+
+cbuffer animubo : register(b0, space1)
+{
+    AnimUBO animubo;
+}
+
+#endif
+
 struct PushConsts
 {
     float4x4 modelMatrix;
@@ -23,7 +38,7 @@ struct PushConsts
 
 float4 main(VSInput input) : SV_POSITION
 {
-    float3 WorldPos = mul(pushConsts.modelMatrix, float4(input.Pos, 1.0)).xyz;
+    float3 WorldPos = mul(pushConsts.modelMatrix, mul(animubo.nodeMatrix, float4(input.Pos, 1.0))).xyz;
     float4 position = mul(ubo.lightVP, float4(WorldPos, 1.0f));
     
     return position;

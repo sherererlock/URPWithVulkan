@@ -8,7 +8,7 @@
 
 //#define CALC_POSITOIN
 
-//#define SHADOW
+#define SHADOW
 
 //#define CPU_SKIN
 //#define GPU_SKIN
