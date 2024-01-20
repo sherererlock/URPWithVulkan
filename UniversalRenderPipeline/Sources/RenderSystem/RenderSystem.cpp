@@ -22,6 +22,10 @@ void RenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout>& setl
 	VkPushConstantRange pushConstantRange{};
 	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstantRange.offset = 0;
+	struct SimplePushConstantData {
+		glm::mat4 modelMatrix{ 1.f };
+		glm::mat4 normalMatrix{ 1.f };
+	};
 	pushConstantRange.size = sizeof(SimplePushConstantData);
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};

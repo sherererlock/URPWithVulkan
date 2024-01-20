@@ -1,5 +1,8 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
+#extension GL_GOOGLE_include_directive : enable
+
+#include "macros.hlsl"
 
 layout(location = 0) in vec3 Pos;
 layout(location = 1) in vec3 Normal;
@@ -30,10 +33,12 @@ uniform UniformBufferObject
     int numLights;
 } ubo;
 
+#ifdef CPU_ANIM
 layout(set = 2, binding = 0)
 uniform nodeMatrices {
 	mat4 nodeMatrice;
 }nodebo;
+#endif
 
 layout(push_constant) uniform PushConsts{
     mat4 modelMatrix;
@@ -42,7 +47,11 @@ layout(push_constant) uniform PushConsts{
 
 void main()
 {
+#ifdef CPU_ANIM
     mat4 model = primitive.modelMatrix * nodebo.nodeMatrice;
+#else
+    mat4 model = primitive.modelMatrix;
+#endif
     vec4 position = (model * vec4(Pos, 1.0));
     oPosition = position.xyz;
     mat3 mat = mat3(model);

@@ -38,7 +38,11 @@ struct PushConsts
 
 float4 main(VSInput input) : SV_POSITION
 {
+#ifdef CPU_ANIM 
     float3 WorldPos = mul(pushConsts.modelMatrix, mul(animubo.nodeMatrix, float4(input.Pos, 1.0))).xyz;
+#else
+    float3 WorldPos = mul(pushConsts.modelMatrix, float4(input.Pos, 1.0)).xyz;
+#endif
     float4 position = mul(ubo.lightVP, float4(WorldPos, 1.0f));
     
     return position;

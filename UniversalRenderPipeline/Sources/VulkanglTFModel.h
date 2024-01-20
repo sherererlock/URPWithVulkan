@@ -303,6 +303,8 @@ namespace vkglTF
 			float radius;
 		} dimensions;
 
+		glm::mat4 modelMatrix = glm::mat4(1.0f);
+
 		bool metallicRoughnessWorkflow = true;
 		bool buffersBound = false;
 		std::string path;

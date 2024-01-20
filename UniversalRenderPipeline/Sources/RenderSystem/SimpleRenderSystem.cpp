@@ -38,6 +38,11 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 
 void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 {
+	struct SimplePushConstantData {
+		glm::mat4 modelMatrix{ 1.f };
+		glm::mat4 normalMatrix{ 1.f };
+	};
+
 	lvePipeline->bind(frameInfo.commandBuffer);
 
 	vkCmdBindDescriptorSets(

@@ -93,18 +93,9 @@ void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 		if (obj.gltfmodel == nullptr)
 			continue;
 
-		SimplePushConstantData push{};
 		obj.transform.translation = glm::vec3(glm::vec4(obj.transform.translation, 1.f));
-		push.modelMatrix = obj.transform.mat4();
-		push.normalMatrix = obj.transform.normalMatrix();
+		obj.gltfmodel->modelMatrix = obj.transform.mat4();
 
-		vkCmdPushConstants(
-			frameInfo.commandBuffer,
-			pipelineLayout,
-			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-			0,
-			sizeof(SimplePushConstantData),
-			&push);
 
 #ifdef CPU_SKIN
 	obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages | RenderFlags::BindSkin, pipelineLayout, 1, frameInfo.frameIndex);

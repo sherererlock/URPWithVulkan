@@ -877,7 +877,7 @@ void vkglTF::Model::loadNode(vkglTF::Node *parent, const tinygltf::Node &node, u
 	newNode->parent = parent;
 	
 	newNode->name = node.name;
-	//std::cout << node.name << std::endl;
+	std::cout << node.name << std::endl;
 	newNode->skinIndex = node.skin;
 	newNode->matrix = glm::mat4(1.0f);
 
@@ -897,6 +897,12 @@ void vkglTF::Model::loadNode(vkglTF::Node *parent, const tinygltf::Node &node, u
 		scale = glm::make_vec3(node.scale.data());
 		newNode->scale = scale;
 	}
+
+	if (node.name == "node_Scheibe_-15360")
+	{
+		newNode->scale = glm::vec3(10.0f, 10.0f, 10.0f);
+	}
+
 	if (node.matrix.size() == 16) {
 		newNode->matrix = glm::make_mat4x4(node.matrix.data());
 		if (globalscale != 1.0f) {
@@ -1596,7 +1602,7 @@ void vkglTF::Model::bindBuffers(VkCommandBuffer commandBuffer)
 	buffersBound = true;
 }
 
-struct SimplePushConstantData1 {
+struct SimplePushConstantData {
 	glm::mat4 modelMatrix{ 1.f };
 	glm::mat4 normalMatrix{ 1.f };
 };
@@ -1606,7 +1612,7 @@ void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t
 	if (node->mesh) {
 		for (Primitive* primitive : node->mesh->primitives) {
 
-			glm::mat4 nodeMatrix = node->getMatrix();
+			glm::mat4 nodeMatrix = modelMatrix * node->getMatrix();
 
 			bool skip = false;
 			const vkglTF::Material& material = primitive->material;
@@ -1631,17 +1637,17 @@ void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t
 				if (renderFlags & RenderFlags::BindAnim)
 					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, bindImageSet + 1, 1, &node->mesh->uniformBuffer.descriptorSet, 0, nullptr);
 
-				//SimplePushConstantData1 push{};
-				//push.modelMatrix = nodeMatrix;
-				//push.normalMatrix = nodeMatrix;
+				SimplePushConstantData push{};
+				push.modelMatrix = nodeMatrix;
+				push.normalMatrix = nodeMatrix;
 
-				//vkCmdPushConstants(
-				//	commandBuffer,
-				//	pipelineLayout,
-				//	VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-				//	0,
-				//	sizeof(SimplePushConstantData1),
-				//	&push);
+				vkCmdPushConstants(
+					commandBuffer,
+					pipelineLayout,
+					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+					0,
+					sizeof(SimplePushConstantData),
+					&push);
 
 				vkCmdDrawIndexed(commandBuffer, primitive->indexCount, 1, primitive->firstIndex, 0, 0);
 			}

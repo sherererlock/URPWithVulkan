@@ -402,7 +402,7 @@ void ShAPP::loadGameObjects()
 
 	auto gltfgo = ShGameObject::createGameObject();
 	gltfgo.gltfmodel = gltfModel;
-	gltfgo.transform.translation = { 0.f, 0.0f, 0.f };
+	gltfgo.transform.translation = { 0.f, -0.5f, 0.f };
 	gltfgo.transform.scale = { 1.f, 1.f, 1.f };
 	gameObjects.emplace(gltfgo.getId(), std::move(gltfgo));
 

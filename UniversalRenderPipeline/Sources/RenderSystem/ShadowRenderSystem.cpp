@@ -105,19 +105,8 @@ void ShadowRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 		if (obj.gltfmodel == nullptr)
 			continue;
 
-		SimplePushConstantData push{};
-		auto rotateLight = glm::rotate(glm::mat4(1.f), 0.5f * frameInfo.frameTime, { 0.f, -1.f, 0.f });
-		obj.transform.translation = glm::vec3(rotateLight * glm::vec4(obj.transform.translation, 1.f));
-		push.modelMatrix = obj.transform.mat4();
-		push.normalMatrix = obj.transform.normalMatrix();
-
-		vkCmdPushConstants(
-			frameInfo.commandBuffer,
-			pipelineLayout,
-			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-			0,
-			sizeof(SimplePushConstantData),
-			&push);
+		obj.transform.translation = glm::vec3(glm::vec4(obj.transform.translation, 1.f));
+		obj.gltfmodel->modelMatrix = obj.transform.mat4();
 
 #ifdef CPU_SKIN
 		obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindSkin, pipelineLayout, 0, frameInfo.frameIndex);
