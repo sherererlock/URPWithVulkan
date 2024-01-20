@@ -19,6 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\imgui\imgui.cpp" />
+    <ClCompile Include="include\imgui\imgui_demo.cpp" />
+    <ClCompile Include="include\imgui\imgui_draw.cpp" />
+    <ClCompile Include="include\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Sources\RenderSystem\BlitRenderSystem.cpp" />
     <ClCompile Include="Sources\RenderPass\BlitPass.cpp" />
     <ClCompile Include="Sources\RenderPass\LightingPass.cpp" />
