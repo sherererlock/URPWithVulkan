@@ -365,7 +365,7 @@ void ShAPP::run()
 	vkDeviceWaitIdle(shDevice.device());
 }
 
-const std::string MODEL_PATH = "models/buster_drone/busterDrone.gltf";
+const std::string MODEL_PATH = "Assets/models/buster_drone/busterDrone.gltf";
 //const std::string MODEL_PATH = "models/sponza/sponza.gltf";
 //const std::string MODEL_PATH = "models/cerberus/cerberus.gltf";
 

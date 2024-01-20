@@ -7,7 +7,7 @@
 #include "ShModel.h"
 
 #ifndef ENGINE_DIR
-#define ENGINE_DIR "./"
+#define ENGINE_DIR "./Assets/"
 #endif
 
 ShPipeline::ShPipeline(
