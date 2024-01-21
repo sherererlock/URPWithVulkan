@@ -898,10 +898,10 @@ void vkglTF::Model::loadNode(vkglTF::Node *parent, const tinygltf::Node &node, u
 		newNode->scale = scale;
 	}
 
-	if (node.name == "node_Scheibe_-15360")
-	{
-		newNode->scale = glm::vec3(10.0f, 10.0f, 10.0f);
-	}
+	//if (node.name == "node_Scheibe_-15360")
+	//{
+	//	newNode->scale = glm::vec3(10.0f, 10.0f, 10.0f);
+	//}
 
 	if (node.matrix.size() == 16) {
 		newNode->matrix = glm::make_mat4x4(node.matrix.data());
@@ -1760,11 +1760,11 @@ void vkglTF::Model::updateAnimation(uint32_t index, float time)
 			}
 		}
 	}
-	if (updated) {
-		for (auto &node : nodes) {
-			node->update();
-		}
-	}
+	//if (updated) {
+	//	for (auto &node : nodes) {
+	//		node->update();
+	//	}
+	//}
 }
 
 /*

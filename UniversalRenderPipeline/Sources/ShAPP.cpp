@@ -256,6 +256,7 @@ void ShAPP::run()
 
 	auto& pointLightGO = ShGameObject::getLight(gameObjects);
 
+	int bufferCount = 0;
 	while (!shWindow.shouldClose()) {
 		glfwPollEvents();
 
@@ -278,97 +279,101 @@ void ShAPP::run()
 
 		float aspect = shRenderer.getAspectRatio();
 
+		// update
+		GlobalUbo ubo{};
+
+		ubo.projection = camera.matrices.perspective;
+		ubo.view = camera.matrices.view;
+		ubo.viewPos = camera.viewPos;
+		ubo.size = glm::vec4(WIDTH, HEIGHT, 1.0f / (float)WIDTH, 1.0f / (float)HEIGHT);
+		ubo.camereInfo = glm::vec4(camera.getNearClip(), camera.getFarClip(), 1.0f / camera.getNearClip(), 1.0f / camera.getFarClip());
+
+		CameraExtentUBO cameraubo{};
+
+		glm::mat view = camera.matrices.view;
+		view[3][0] = 0.0f;
+		view[3][1] = 0.0f;
+		view[3][2] = 0.0f;
+		view[3][2] = 1.0f;
+
+		glm::mat vp = camera.matrices.perspective * view;
+
+		glm::mat inversevp = glm::inverse(vp);
+
+		glm::vec4 lt = glm::vec4{ -1.0f, 1.0f, -1.0f, 1.0f };
+		glm::vec4 rt = glm::vec4{ 1.0f, 1.0f, -1.0f, 1.0f };
+		glm::vec4 lb = glm::vec4{ -1.0f, -1.0f, -1.0f, 1.0f };
+
+		cameraubo.leftTop = inversevp * lt;
+		glm::vec4 rtw = inversevp * rt;
+		glm::vec4 lbw = inversevp * lb;
+		cameraubo.left2Right = (rtw - cameraubo.leftTop);
+		cameraubo.top2bottom = (lbw - cameraubo.leftTop);
+
 		shRenderer.beginFrame();
 
-		if (auto commandBuffer = shRenderer.beginCommandBuffer())
+		int frameIndex = shRenderer.getFrameIndex();
+		if (bufferCount < 2)
 		{
-			int frameIndex = shRenderer.getFrameIndex();
-			FrameInfo frameInfo{
-				frameIndex,
-				frameTimer,
-				lightUpdate,
-				commandBuffer,
-				camera,
-				globalDescriptorSets[frameIndex],
-				gameObjects };
+			if (auto commandBuffer = shRenderer.beginCommandBuffer())
+			{
+				bufferCount++;
+				FrameInfo frameInfo{
+					frameIndex,
+					frameTimer,
+					lightUpdate,
+					commandBuffer,
+					camera,
+					globalDescriptorSets[frameIndex],
+					gameObjects };
 
-			// update
-			GlobalUbo ubo{};
+				pointLightSystem.update(frameInfo, ubo);
 
-			ubo.projection = camera.matrices.perspective;
-			ubo.view = camera.matrices.view;
-			ubo.viewPos = camera.viewPos;
-			ubo.size = glm::vec4(WIDTH, HEIGHT, 1.0f / (float)WIDTH, 1.0f / (float)HEIGHT);
-			ubo.camereInfo = glm::vec4(camera.getNearClip(), camera.getFarClip(), 1.0f / camera.getNearClip(), 1.0f / camera.getFarClip());
+				uboBuffers[frameIndex]->writeToBuffer(&ubo);
+				uboBuffers[frameIndex]->flush();
 
-			CameraExtentUBO cameraubo{};
-
-			glm::mat view = camera.matrices.view;
-			view[3][0] = 0.0f;
-			view[3][1] = 0.0f;
-			view[3][2] = 0.0f;
-			view[3][2] = 1.0f;
-
-			glm::mat vp = camera.matrices.perspective * view;
-
-			glm::mat inversevp = glm::inverse(vp);
-
-			glm::vec4 lt = glm::vec4{ -1.0f, 1.0f, -1.0f, 1.0f };
-			glm::vec4 rt = glm::vec4{ 1.0f, 1.0f, -1.0f, 1.0f };
-			glm::vec4 lb = glm::vec4{ -1.0f, -1.0f, -1.0f, 1.0f };
-
-			cameraubo.leftTop = inversevp * lt;
-			glm::vec4 rtw = inversevp * rt;
-			glm::vec4 lbw = inversevp * lb;
-			cameraubo.left2Right = (rtw - cameraubo.leftTop);
-			cameraubo.top2bottom = (lbw - cameraubo.leftTop);
-
-			pointLightSystem.update(frameInfo, ubo);
-
-			uboBuffers[frameIndex]->writeToBuffer(&ubo);
-			uboBuffers[frameIndex]->flush();
-
-			cameraBuffers[frameIndex]->writeToBuffer(&cameraubo);
-			cameraBuffers[frameIndex]->flush();
+				cameraBuffers[frameIndex]->writeToBuffer(&cameraubo);
+				cameraBuffers[frameIndex]->flush();
 
 #ifdef  SHADOW
-			// shadow pass
-			shadowRenderSystem.setupLight(pointLightGO, frameIndex);
-			shadowPass.beginRenderPass(commandBuffer);
-			shadowRenderSystem.renderGameObjects(frameInfo);
-			shadowPass.endRenderPass(commandBuffer);
+				// shadow pass
+				shadowRenderSystem.setupLight(pointLightGO, frameIndex);
+				shadowPass.beginRenderPass(commandBuffer);
+				shadowRenderSystem.renderGameObjects(frameInfo);
+				shadowPass.endRenderPass(commandBuffer);
 #endif //  SHADOW
 
 
 #ifdef DEFERRENDERING
-			// base pass
-			basePass.beginRenderPass(commandBuffer);
-			baseRenderSystem.renderGameObjects(frameInfo);
-			basePass.endRenderPass(commandBuffer);
+				// base pass
+				basePass.beginRenderPass(commandBuffer);
+				baseRenderSystem.renderGameObjects(frameInfo);
+				basePass.endRenderPass(commandBuffer);
 
-			// lighting pass
-			lightPass.beginRenderPass(commandBuffer);
-			lightingRenderSystem.renderGameObjects(frameInfo, { lightDescriptorSets[frameIndex], imageDescriptorSets[frameIndex] });
-			lightPass.endRenderPass(commandBuffer);
+				// lighting pass
+				lightPass.beginRenderPass(commandBuffer);
+				lightingRenderSystem.renderGameObjects(frameInfo, { lightDescriptorSets[frameIndex], imageDescriptorSets[frameIndex] });
+				lightPass.endRenderPass(commandBuffer);
 #endif
 
-			// render
-			shRenderer.beginSwapChainRenderPass(commandBuffer);
+				// render
+				shRenderer.beginSwapChainRenderPass(commandBuffer);
 
-			// order here matters
-			//simpleRenderSystem.renderGameObjects(frameInfo);
+				// order here matters
+				//simpleRenderSystem.renderGameObjects(frameInfo);
 #ifdef DEFERRENDERING
-			blitRenderSystem.renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] });
+				blitRenderSystem.renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] });
 #else
-			gltfRenderSystem.renderGameObjects(frameInfo);
+				gltfRenderSystem.renderGameObjects(frameInfo);
 #endif
 
-			pointLightSystem.render(frameInfo);
-			updateOverlay(input);
-			drawUI(commandBuffer);
-			shRenderer.endSwapChainRenderPass(commandBuffer);
+				pointLightSystem.render(frameInfo);
+				updateOverlay(input);
+				drawUI(commandBuffer);
+				shRenderer.endSwapChainRenderPass(commandBuffer);
 
-			shRenderer.endCommandBuffer();
+				shRenderer.endCommandBuffer();
+			}
 		}
 
 		shRenderer.endFrame();
