@@ -7,7 +7,7 @@
 
 int main()
 {
-	std::string command = "Shaders\\compile.bat";
+	std::string command = "Assets\\Shaders\\compile.bat";
 
 	int result = std::system(command.c_str());
 

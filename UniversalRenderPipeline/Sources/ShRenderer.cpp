@@ -70,7 +70,7 @@ ShRenderer::~ShRenderer()
     freeCommandBuffers();
 }
 
-VkCommandBuffer ShRenderer::beginFrame()
+void ShRenderer::beginFrame()
 {
     assert(!isFrameStarted && "Can't call beginFrame while already in progress");
 
@@ -78,7 +78,7 @@ VkCommandBuffer ShRenderer::beginFrame()
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
     {
         recreateSwapChain();
-        return nullptr;
+        return;
     }
 
     if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) 
@@ -87,28 +87,15 @@ VkCommandBuffer ShRenderer::beginFrame()
     }
 
     isFrameStarted = true;
-
-    auto commandBuffer = getCurrentCommandBuffer();
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to begin recording command buffer!");
-    }
-
-    return commandBuffer;
 }
 
 void ShRenderer::endFrame()
 {
     assert(isFrameStarted && "Can't call endFrame while frame is not in progress");
     auto commandBuffer = getCurrentCommandBuffer();
-    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-        throw std::runtime_error("failed to record command buffer!");
-    }
 
-    auto result = shSwapchain->submitCommandBuffers(&commandBuffer, &currentImageIndex);
+    shSwapchain->submitCommandBuffers(&commandBuffer, &currentImageIndex);
+    auto result = shSwapchain->submitFrame(&currentImageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
         shWindow.wasWindowResized()) 
     {
@@ -122,6 +109,31 @@ void ShRenderer::endFrame()
 
     isFrameStarted = false;
     currentFrameIndex = (currentFrameIndex + 1) % ShSwapchain::MAX_FRAMES_IN_FLIGHT;
+}
+
+VkCommandBuffer ShRenderer::beginCommandBuffer()
+{
+    if (!isFrameStarted)
+        return VK_NULL_HANDLE;
+
+    auto commandBuffer = getCurrentCommandBuffer();
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to begin recording command buffer!");
+    }
+
+    return commandBuffer;
+}
+
+void ShRenderer::endCommandBuffer()
+{
+    auto commandBuffer = getCurrentCommandBuffer();
+    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+        throw std::runtime_error("failed to record command buffer!");
+    }
 }
 
 void ShRenderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer)

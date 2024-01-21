@@ -43,6 +43,18 @@ std::vector<char> ShPipeline::readFile(const std::string& filepath) {
 	return buffer;
 }
 
+void ShPipeline::createShaderModule(ShDevice& device, const std::vector<char>& code, VkShaderModule* shaderModule)
+{
+	VkShaderModuleCreateInfo createInfo{};
+	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	createInfo.codeSize = code.size();
+	createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+	if (vkCreateShaderModule(device.device(), &createInfo, nullptr, shaderModule) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create shader module");
+	}
+}
+
 void ShPipeline::createGraphicsPipeline(
 	const std::string& vertFilepath,
 	const std::string& fragFilepath,

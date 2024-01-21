@@ -56,6 +56,7 @@
     <ClCompile Include="Sources\ShDevice.cpp" />
     <ClCompile Include="Sources\ShWindow.cpp" />
     <ClCompile Include="Sources\Tools.cpp" />
+    <ClCompile Include="Sources\UI\VulkanUIOverlay.cpp" />
     <ClCompile Include="Sources\VulkanglTFModel.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -211,7 +212,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)include\ktx\include;$(SolutionDir)include\ktx\other_include;$(SolutionDir)include\glm;$(SolutionDir)include\tinygltf;$(SolutionDir)include\glfw;$(SolutionDir)Sources;$(SolutionDir)Shaders</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)include\ktx\include;$(SolutionDir)include\ktx\other_include;$(SolutionDir)include\glm;$(SolutionDir)include\tinygltf;$(SolutionDir)include\glfw;$(SolutionDir)Sources;$(SolutionDir)Assets\Shaders</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

@@ -396,7 +396,7 @@ VkResult ShSwapchain::acquireNextImage(uint32_t* imageIndex)
     return result;
 }
 
-VkResult ShSwapchain::submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex)
+void ShSwapchain::submitCommandBuffers(const VkCommandBuffer* buffers, uint32_t* imageIndex)
 {
     if (imagesInFlight[*imageIndex] != VK_NULL_HANDLE) 
     {
@@ -426,7 +426,11 @@ VkResult ShSwapchain::submitCommandBuffers(const VkCommandBuffer* buffers, uint3
     {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
+}
 
+VkResult ShSwapchain::submitFrame(uint32_t* imageIndex)
+{
+    VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 

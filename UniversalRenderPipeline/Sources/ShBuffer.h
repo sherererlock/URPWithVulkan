@@ -8,7 +8,6 @@ private:
 	static VkDeviceSize getAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffsetAlignment);
 
 	ShDevice& shDevice;
-	void* mapped = nullptr;
 	VkBuffer buffer = VK_NULL_HANDLE;
 	VkDeviceMemory memory = VK_NULL_HANDLE;
 
@@ -29,6 +28,7 @@ public:
 		VkDeviceSize minOffsetAlignment = 1);
 	~ShBuffer();
 
+	void* mapped = nullptr;
 	ShBuffer(const ShBuffer&) = delete;
 	ShBuffer& operator=(const ShBuffer&) = delete;
 

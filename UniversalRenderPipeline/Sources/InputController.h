@@ -30,18 +30,20 @@ public:
 class Input
 {
 private:
-	glm::vec2 mousePos;
-	struct {
-		bool left = false;
-		bool right = false;
-		bool middle = false;
-	} mouseButtons;
+
 
 	Camera2& camera;
 	ShAPP& app;
 	static Input* instance;
 	float interval = 0.5f;
 public:
+	struct {
+		bool left = false;
+		bool right = false;
+		bool middle = false;
+	} mouseButtons;
+	glm::vec2 mousePos;
+
 	Input(Camera2& camera,ShAPP& app) : camera(camera), app(app) { instance = this; }
 
 	void update(float deltaTime);

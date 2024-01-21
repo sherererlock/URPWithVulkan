@@ -877,7 +877,7 @@ void vkglTF::Model::loadNode(vkglTF::Node *parent, const tinygltf::Node &node, u
 	newNode->parent = parent;
 	
 	newNode->name = node.name;
-	std::cout << node.name << std::endl;
+	//std::cout << node.name << std::endl;
 	newNode->skinIndex = node.skin;
 	newNode->matrix = glm::mat4(1.0f);
 

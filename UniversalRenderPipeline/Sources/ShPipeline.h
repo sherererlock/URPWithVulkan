@@ -46,9 +46,9 @@ public:
 	typedef std::function<std::vector<VkVertexInputAttributeDescription>()> getInputAttribute;
 	static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, getInputBinding f1, getInputAttribute f2, uint32_t colorBlendAttachmentCount = 1);
 	static void enableAlphaBlending(PipelineConfigInfo& configInfo);
-
-private:
 	static std::vector<char> readFile(const std::string& filepath);
+	static void createShaderModule(ShDevice& device, const std::vector<char>& code, VkShaderModule* shaderModule);
+private:
 
 	void createGraphicsPipeline(
 		const std::string& vertFilepath,

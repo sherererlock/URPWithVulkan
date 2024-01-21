@@ -53,7 +53,10 @@ ShAPP::ShAPP() {
 	loadGameObjects();
 }
 
-ShAPP::~ShAPP() {}
+ShAPP::~ShAPP()
+{
+	UIOverlay.freeResources();
+}
 
 void ShAPP::run()
 {
@@ -245,39 +248,44 @@ void ShAPP::run()
 
 	Input input(camera, *this);
 
+	createUIOverlay();
+
+	uint32_t frameCounter = 0;
+
+	std::chrono::time_point<std::chrono::high_resolution_clock> lastTimestamp, tPrevEnd;
+
 	auto& pointLightGO = ShGameObject::getLight(gameObjects);
-	auto currentTime = std::chrono::high_resolution_clock::now();
+
 	while (!shWindow.shouldClose()) {
 		glfwPollEvents();
 
-		auto newTime = std::chrono::high_resolution_clock::now();
-		auto frameTime =
-			std::chrono::duration<double, std::milli>(newTime - currentTime).count();
-		currentTime = newTime;
-		auto sleeptime = 33.0f - frameTime;
-		sleeptime = sleeptime > 0.0f ? sleeptime : 0.0f;
-		Sleep((DWORD)sleeptime);
+		auto tStart = std::chrono::high_resolution_clock::now();
 
-		float delta = (float)frameTime / 1000.0f;
-		camera.update(delta);
-		input.update(delta);
+		auto sleeptime = 33.0f - frameTimer * 1000.0f;
+		sleeptime = sleeptime > 0.0f ? sleeptime : 0.0f;
+		//Sleep((DWORD)sleeptime);
+		camera.update(frameTimer);
+		input.update(frameTimer);
+
 		for (auto& kv : gameObjects)
 		{
 			auto& obj = kv.second;
 			if (obj.gltfmodel == nullptr)
 				continue;
 
-			obj.gltfmodel->updateAnimation(0, delta);
+			obj.gltfmodel->updateAnimation(0, frameTimer);
 		}
 
 		float aspect = shRenderer.getAspectRatio();
 
-		if (auto commandBuffer = shRenderer.beginFrame())
+		shRenderer.beginFrame();
+
+		if (auto commandBuffer = shRenderer.beginCommandBuffer())
 		{
 			int frameIndex = shRenderer.getFrameIndex();
 			FrameInfo frameInfo{
 				frameIndex,
-				delta,
+				frameTimer,
 				lightUpdate,
 				commandBuffer,
 				camera,
@@ -290,7 +298,7 @@ void ShAPP::run()
 			ubo.projection = camera.matrices.perspective;
 			ubo.view = camera.matrices.view;
 			ubo.viewPos = camera.viewPos;
-			ubo.size = glm::vec4(WIDTH, HEIGHT, 1.0f / (float)WIDTH, 1.0f / (float) HEIGHT);
+			ubo.size = glm::vec4(WIDTH, HEIGHT, 1.0f / (float)WIDTH, 1.0f / (float)HEIGHT);
 			ubo.camereInfo = glm::vec4(camera.getNearClip(), camera.getFarClip(), 1.0f / camera.getNearClip(), 1.0f / camera.getFarClip());
 
 			CameraExtentUBO cameraubo{};
@@ -356,13 +364,141 @@ void ShAPP::run()
 #endif
 
 			pointLightSystem.render(frameInfo);
-
+			updateOverlay(input);
+			drawUI(commandBuffer);
 			shRenderer.endSwapChainRenderPass(commandBuffer);
-			shRenderer.endFrame();
+
+			shRenderer.endCommandBuffer();
+		}
+
+		shRenderer.endFrame();
+		frameCounter++;
+		auto tEnd = std::chrono::high_resolution_clock::now();
+		auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
+		frameTimer = (float)tDiff / 1000.0f;
+		float fpsTimer = (float)(std::chrono::duration<double, std::milli>(tEnd - lastTimestamp).count());
+		if (fpsTimer > 1000.0f)
+		{
+			lastFPS = static_cast<uint32_t>((float)frameCounter * (1000.0f / fpsTimer));
+			frameCounter = 0;
+			lastTimestamp = tEnd;
 		}
 	}
 
 	vkDeviceWaitIdle(shDevice.device());
+}
+
+void ShAPP::nextFrame()
+{
+}
+
+void ShAPP::updateOverlay(Input& input)
+{
+	ImGuiIO& io = ImGui::GetIO();
+
+	io.DisplaySize = ImVec2((float)WIDTH, (float)HEIGHT);
+	io.DeltaTime = frameTimer;
+
+	io.MousePos = ImVec2(input.mousePos.x, input.mousePos.y);
+	io.MouseDown[0] = input.mouseButtons.left && UIOverlay.visible;
+	io.MouseDown[1] = input.mouseButtons.right && UIOverlay.visible;
+	io.MouseDown[2] = input.mouseButtons.middle && UIOverlay.visible;
+
+	ImGui::NewFrame();
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+	ImGui::SetNextWindowPos(ImVec2(10 * UIOverlay.scale, 10 * UIOverlay.scale));
+	ImGui::SetNextWindowSize(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
+	ImGui::Begin("Vulkan Example", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+	ImGui::TextUnformatted("Vulkan URP");
+	ImGui::TextUnformatted("RTX 4060TI");
+	ImGui::Text("%.2f ms/frame (%.1d fps)", (1000.0f / lastFPS), lastFPS);
+
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 5.0f * UIOverlay.scale));
+#endif
+	ImGui::PushItemWidth(110.0f * UIOverlay.scale);
+	OnUpdateUIOverlay();
+	ImGui::PopItemWidth();
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	ImGui::PopStyleVar();
+#endif
+
+	ImGui::End();
+	ImGui::PopStyleVar();
+	ImGui::Render();
+
+	if (UIOverlay.update() || UIOverlay.updated) {
+		//buildCommandBuffers();
+		UIOverlay.updated = false;
+	}
+
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	if (mouseButtons.left) {
+		mouseButtons.left = false;
+	}
+#endif
+}
+
+void ShAPP::drawUI(const VkCommandBuffer commandBuffer)
+{
+	if (UIOverlay.visible) {
+		const VkViewport viewport = Initializers::viewport((float)WIDTH, (float)HEIGHT, 0.0f, 1.0f);
+		const VkRect2D scissor = Initializers::rect2D(WIDTH, HEIGHT, 0, 0);
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		UIOverlay.draw(commandBuffer);
+	}
+}
+
+void ShAPP::createUIOverlay()
+{
+	VkFormat dformat = shDevice.findSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+	UIOverlay.device = &shDevice;
+	UIOverlay.queue = shDevice.graphicsQueue();
+	std::vector<char> vs_code = ShPipeline::readFile("shaders/spv/uioverlay.vert.spv");
+	std::vector<char> ps_code = ShPipeline::readFile("shaders/spv/uioverlay.frag.spv");
+	VkShaderModule vs_shaderModule, ps_shaderModule;
+	ShPipeline::createShaderModule(shDevice, vs_code, &vs_shaderModule);
+	ShPipeline::createShaderModule(shDevice, ps_code, &ps_shaderModule);
+
+	VkPipelineShaderStageCreateInfo shaderStages[2];
+	shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+	shaderStages[0].module = vs_shaderModule;
+	shaderStages[0].pName = "main";
+	shaderStages[0].flags = 0;
+	shaderStages[0].pNext = nullptr;
+	shaderStages[0].pSpecializationInfo = nullptr;
+	shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	shaderStages[1].module = ps_shaderModule;
+	shaderStages[1].pName = "main";
+	shaderStages[1].flags = 0;
+	shaderStages[1].pNext = nullptr;
+	shaderStages[1].pSpecializationInfo = nullptr;
+
+	UIOverlay.shaders = { shaderStages[0], shaderStages[1] };
+
+	UIOverlay.prepareResources();
+	UIOverlay.preparePipeline(nullptr, shRenderer.getSwapChainRenderPass(), shRenderer.getFormat(), dformat);
+
+	vkDestroyShaderModule(shDevice.device(), vs_shaderModule, nullptr);
+	vkDestroyShaderModule(shDevice.device(), ps_shaderModule, nullptr);
+}
+
+void ShAPP::OnUpdateUIOverlay()
+{
+
+}
+
+void ShAPP::buildCommandBuffer()
+{
+
 }
 
 const std::string MODEL_PATH = "Assets/models/buster_drone/busterDrone.gltf";

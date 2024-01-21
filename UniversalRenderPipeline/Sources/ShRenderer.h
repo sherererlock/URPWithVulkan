@@ -42,8 +42,10 @@ public:
 		return currentFrameIndex;
 	}
 
-	VkCommandBuffer beginFrame();
+	void beginFrame();
 	void endFrame();
+	VkCommandBuffer beginCommandBuffer();
+	void endCommandBuffer();
 	void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
 	void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 };
