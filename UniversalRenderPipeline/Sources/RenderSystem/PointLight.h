@@ -19,7 +19,7 @@ public:
 	PointLightSystem& operator=(const PointLightSystem&) = delete;
 
 	void update(FrameInfo& frameInfo, GlobalUbo& ubo);
-	void render(FrameInfo& frameInfo);
+	void render(FrameInfo& frameInfo, VkCommandBuffer commandBuffer);
 
 private:
 	void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);

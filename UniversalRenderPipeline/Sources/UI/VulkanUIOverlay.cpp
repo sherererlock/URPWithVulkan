@@ -334,6 +334,9 @@ namespace vks
 		// Vertex buffer
 		if ((vertexBuffer == VK_NULL_HANDLE) || (vertexCount != imDrawData->TotalVtxCount)) 
 		{
+			if (vertexBuffer != nullptr)
+				vertexBuffer->unmap();
+
 			vertexBuffer = std::make_unique<ShBuffer>(*device,
 				vertexBufferSize, 1,
 				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -347,6 +350,9 @@ namespace vks
 
 		// Index buffer
 		if ((indexBuffer == VK_NULL_HANDLE) || (indexCount < imDrawData->TotalIdxCount)) {
+			if (indexBuffer != nullptr)
+				indexBuffer->unmap();
+
 			indexBuffer = std::make_unique<ShBuffer>(*device,
 				indexBufferSize, 1,
 				VK_BUFFER_USAGE_INDEX_BUFFER_BIT,

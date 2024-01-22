@@ -90,7 +90,7 @@ void PointLightSystem::update(FrameInfo& frameInfo, GlobalUbo& ubo) {
 	ubo.numLights = lightIndex;
 }
 
-void PointLightSystem::render(FrameInfo& frameInfo) {
+void PointLightSystem::render(FrameInfo& frameInfo, VkCommandBuffer commandBuffer) {
 	// sort lights
 	std::map<float, ShGameObject::id_t> sorted;
 	for (auto& kv : frameInfo.gameObjects) {
@@ -104,10 +104,10 @@ void PointLightSystem::render(FrameInfo& frameInfo) {
 		sorted[disSquared] = obj.getId();
 	}
 
-	lvePipeline->bind(frameInfo.commandBuffer);
+	lvePipeline->bind(commandBuffer);
 
 	vkCmdBindDescriptorSets(
-		frameInfo.commandBuffer,
+		commandBuffer,
 		VK_PIPELINE_BIND_POINT_GRAPHICS,
 		pipelineLayout,
 		0,
@@ -127,12 +127,12 @@ void PointLightSystem::render(FrameInfo& frameInfo) {
 		push.radius = obj.transform.scale.x;
 
 		vkCmdPushConstants(
-			frameInfo.commandBuffer,
+			commandBuffer,
 			pipelineLayout,
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 			0,
 			sizeof(PointLightPushConstants),
 			&push);
-		vkCmdDraw(frameInfo.commandBuffer, 6, 1, 0, 0);
+		vkCmdDraw(commandBuffer, 6, 1, 0, 0);
 	}
 }

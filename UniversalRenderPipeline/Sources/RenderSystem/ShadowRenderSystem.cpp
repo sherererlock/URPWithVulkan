@@ -85,12 +85,12 @@ void ShadowRenderSystem::createPipeline(VkRenderPass renderPass)
 		pipelineConfig);
 }
 
-void ShadowRenderSystem::renderGameObjects(FrameInfo& frameInfo)
+void ShadowRenderSystem::renderGameObjects(FrameInfo& frameInfo, VkCommandBuffer commandBuffer)
 {
-	lvePipeline->bind(frameInfo.commandBuffer);
+	lvePipeline->bind(commandBuffer);
 
 	vkCmdBindDescriptorSets(
-		frameInfo.commandBuffer,
+		commandBuffer,
 		VK_PIPELINE_BIND_POINT_GRAPHICS,
 		pipelineLayout,
 		0,
@@ -109,11 +109,11 @@ void ShadowRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 		obj.gltfmodel->modelMatrix = obj.transform.mat4();
 
 #ifdef CPU_SKIN
-		obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindSkin, pipelineLayout, 0, frameInfo.frameIndex);
+		obj.gltfmodel->draw(commandBuffer, RenderFlags::BindSkin, pipelineLayout, 0, frameInfo.frameIndex);
 #elif defined CPU_ANIM
-		obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindAnim, pipelineLayout, 0, frameInfo.frameIndex);
+		obj.gltfmodel->draw(commandBuffer, RenderFlags::BindAnim, pipelineLayout, 0, frameInfo.frameIndex);
 #else
-		obj.gltfmodel->draw(frameInfo.commandBuffer, 0, pipelineLayout, 0, frameInfo.frameIndex);
+		obj.gltfmodel->draw(commandBuffer, 0, pipelineLayout, 0, frameInfo.frameIndex);
 #endif
 	}
 }

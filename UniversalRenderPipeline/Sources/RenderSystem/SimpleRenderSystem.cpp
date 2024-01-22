@@ -36,17 +36,17 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 		pipelineConfig);
 }
 
-void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo)
+void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo, VkCommandBuffer commandBuffer)
 {
 	struct SimplePushConstantData {
 		glm::mat4 modelMatrix{ 1.f };
 		glm::mat4 normalMatrix{ 1.f };
 	};
 
-	lvePipeline->bind(frameInfo.commandBuffer);
+	lvePipeline->bind(commandBuffer);
 
 	vkCmdBindDescriptorSets(
-		frameInfo.commandBuffer,
+		commandBuffer,
 		VK_PIPELINE_BIND_POINT_GRAPHICS,
 		pipelineLayout,
 		0,
@@ -65,14 +65,14 @@ void SimpleRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 		push.normalMatrix = obj.transform.normalMatrix();
 
 		vkCmdPushConstants(
-			frameInfo.commandBuffer,
+			commandBuffer,
 			pipelineLayout,
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 			0,
 			sizeof(SimplePushConstantData),
 			&push);
 
-		obj.model->bind(frameInfo.commandBuffer);
-		obj.model->draw(frameInfo.commandBuffer);
+		obj.model->bind(commandBuffer);
+		obj.model->draw(commandBuffer);
 	}
 }

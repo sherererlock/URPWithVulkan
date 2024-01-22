@@ -59,12 +59,12 @@ void GltfRenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout>& 
 	RenderSystem::createPipelineLayout(layouts);
 }
 
-void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
+void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo, VkCommandBuffer commandBuffer)
 {
-	lvePipeline->bind(frameInfo.commandBuffer);
+	lvePipeline->bind(commandBuffer);
 
 	vkCmdBindDescriptorSets(
-		frameInfo.commandBuffer,
+		commandBuffer,
 		VK_PIPELINE_BIND_POINT_GRAPHICS,
 		pipelineLayout,
 		0,
@@ -77,7 +77,7 @@ void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 	{
 		VkDescriptorSet set = shadowRenderSystem->getLightSet(frameInfo.frameIndex);
 		vkCmdBindDescriptorSets(
-			frameInfo.commandBuffer,
+			commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			pipelineLayout,
 			2,
@@ -98,11 +98,11 @@ void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo)
 
 
 #ifdef CPU_SKIN
-	obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages | RenderFlags::BindSkin, pipelineLayout, 1, frameInfo.frameIndex);
+	obj.gltfmodel->draw(commandBuffer, RenderFlags::BindImages | RenderFlags::BindSkin, pipelineLayout, 1, frameInfo.frameIndex);
 #elif defined CPU_ANIM
-	obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages | RenderFlags::BindAnim, pipelineLayout, 1, frameInfo.frameIndex);
+	obj.gltfmodel->draw(commandBuffer, RenderFlags::BindImages | RenderFlags::BindAnim, pipelineLayout, 1, frameInfo.frameIndex);
 #else
-	obj.gltfmodel->draw(frameInfo.commandBuffer, RenderFlags::BindImages, pipelineLayout, 1, frameInfo.frameIndex);
+	obj.gltfmodel->draw(commandBuffer, RenderFlags::BindImages, pipelineLayout, 1, frameInfo.frameIndex);
 #endif
 	}
 }

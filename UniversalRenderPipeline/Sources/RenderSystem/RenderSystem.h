@@ -15,7 +15,8 @@ public:
 	RenderSystem(const RenderSystem&) = delete;
 	RenderSystem& operator=(const RenderSystem&) = delete;
 
-	virtual void renderGameObjects(FrameInfo& frameInfo) = 0;
+	virtual void renderGameObjects(FrameInfo& frameInfo,
+		VkCommandBuffer commandBuffer) = 0;
 	virtual void createPipeline(VkRenderPass renderPass) = 0;
 	virtual void createPipelineLayout(std::vector<VkDescriptorSetLayout>& setLayouts);
 

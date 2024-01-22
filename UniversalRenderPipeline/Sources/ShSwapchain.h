@@ -52,7 +52,7 @@ private:
 
 
 public:
-	static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
+	static constexpr int MAX_FRAMES_IN_FLIGHT = 3;
 
 	ShSwapchain(ShDevice& device, VkExtent2D windowExtent);
 	ShSwapchain(

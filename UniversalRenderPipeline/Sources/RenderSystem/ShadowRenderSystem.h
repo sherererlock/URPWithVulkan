@@ -37,6 +37,6 @@ public:
 	void setupLight(const ShGameObject& light, int frameIndex);
 
 	virtual void createPipeline(VkRenderPass renderPass) override;
-	virtual void renderGameObjects(FrameInfo& frameInfo) override;
+	virtual void renderGameObjects(FrameInfo& frameInfo, VkCommandBuffer commandBuffer) override;
 };
 

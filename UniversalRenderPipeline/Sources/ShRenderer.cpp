@@ -15,6 +15,7 @@ void ShRenderer::createCommandBuffers()
     allocInfo.commandPool = shDevice.getCommandPool();
     allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
+    // initial state
     if (vkAllocateCommandBuffers(shDevice.device(), &allocInfo, commandBuffers.data()) !=
         VK_SUCCESS) 
     {
@@ -93,7 +94,7 @@ void ShRenderer::endFrame()
 {
     assert(isFrameStarted && "Can't call endFrame while frame is not in progress");
     auto commandBuffer = getCurrentCommandBuffer();
-
+    // Pending state
     shSwapchain->submitCommandBuffers(&commandBuffer, &currentImageIndex);
     auto result = shSwapchain->submitFrame(&currentImageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
@@ -109,6 +110,7 @@ void ShRenderer::endFrame()
 
     isFrameStarted = false;
     currentFrameIndex = (currentFrameIndex + 1) % ShSwapchain::MAX_FRAMES_IN_FLIGHT;
+    vkQueueWaitIdle(shDevice.presentQueue());
 }
 
 VkCommandBuffer ShRenderer::beginCommandBuffer()
@@ -118,8 +120,10 @@ VkCommandBuffer ShRenderer::beginCommandBuffer()
 
     auto commandBuffer = getCurrentCommandBuffer();
     VkCommandBufferBeginInfo beginInfo{};
+    //beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
+    // Recording state
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to begin recording command buffer!");
@@ -130,6 +134,7 @@ VkCommandBuffer ShRenderer::beginCommandBuffer()
 
 void ShRenderer::endCommandBuffer()
 {
+    // Executable state
     auto commandBuffer = getCurrentCommandBuffer();
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to record command buffer!");

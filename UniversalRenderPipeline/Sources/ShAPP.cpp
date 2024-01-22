@@ -32,9 +32,9 @@
 
 #include "macros.hlsl"
 
-#define MAX_SET_NUM 20
-#define MAX_UNIFORM_BUFFER_NUM 20
-#define MAX_SAMPLER_BUFFER_NUM 20
+#define MAX_SET_NUM 30
+#define MAX_UNIFORM_BUFFER_NUM 30
+#define MAX_SAMPLER_BUFFER_NUM 30
 
 struct CameraExtentUBO
 {
@@ -311,35 +311,36 @@ void ShAPP::run()
 		cameraubo.top2bottom = (lbw - cameraubo.leftTop);
 
 		shRenderer.beginFrame();
-
 		int frameIndex = shRenderer.getFrameIndex();
-		if (bufferCount < 2)
+		FrameInfo frameInfo{
+			frameIndex,
+			frameTimer,
+			lightUpdate,
+			camera,
+			globalDescriptorSets[frameIndex],
+			gameObjects };
+
+		pointLightSystem.update(frameInfo, ubo);
+
+		uboBuffers[frameIndex]->writeToBuffer(&ubo);
+		uboBuffers[frameIndex]->flush();
+
+		cameraBuffers[frameIndex]->writeToBuffer(&cameraubo);
+		cameraBuffers[frameIndex]->flush();
+
+		updateOverlay(input);
+
+		if (bufferCount < 3)
 		{
 			if (auto commandBuffer = shRenderer.beginCommandBuffer())
 			{
 				bufferCount++;
-				FrameInfo frameInfo{
-					frameIndex,
-					frameTimer,
-					lightUpdate,
-					commandBuffer,
-					camera,
-					globalDescriptorSets[frameIndex],
-					gameObjects };
-
-				pointLightSystem.update(frameInfo, ubo);
-
-				uboBuffers[frameIndex]->writeToBuffer(&ubo);
-				uboBuffers[frameIndex]->flush();
-
-				cameraBuffers[frameIndex]->writeToBuffer(&cameraubo);
-				cameraBuffers[frameIndex]->flush();
 
 #ifdef  SHADOW
 				// shadow pass
 				shadowRenderSystem.setupLight(pointLightGO, frameIndex);
 				shadowPass.beginRenderPass(commandBuffer);
-				shadowRenderSystem.renderGameObjects(frameInfo);
+				shadowRenderSystem.renderGameObjects(frameInfo, commandBuffer);
 				shadowPass.endRenderPass(commandBuffer);
 #endif //  SHADOW
 
@@ -347,12 +348,12 @@ void ShAPP::run()
 #ifdef DEFERRENDERING
 				// base pass
 				basePass.beginRenderPass(commandBuffer);
-				baseRenderSystem.renderGameObjects(frameInfo);
+				baseRenderSystem.renderGameObjects(frameInfo, commandBuffer);
 				basePass.endRenderPass(commandBuffer);
 
 				// lighting pass
 				lightPass.beginRenderPass(commandBuffer);
-				lightingRenderSystem.renderGameObjects(frameInfo, { lightDescriptorSets[frameIndex], imageDescriptorSets[frameIndex] });
+				lightingRenderSystem.renderGameObjects(frameInfo, { lightDescriptorSets[frameIndex], imageDescriptorSets[frameIndex] }, commandBuffer);
 				lightPass.endRenderPass(commandBuffer);
 #endif
 
@@ -362,13 +363,13 @@ void ShAPP::run()
 				// order here matters
 				//simpleRenderSystem.renderGameObjects(frameInfo);
 #ifdef DEFERRENDERING
-				blitRenderSystem.renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] });
+				blitRenderSystem.renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] }, commandBuffer);
 #else
 				gltfRenderSystem.renderGameObjects(frameInfo);
 #endif
 
-				pointLightSystem.render(frameInfo);
-				updateOverlay(input);
+				pointLightSystem.render(frameInfo, commandBuffer);
+
 				drawUI(commandBuffer);
 				shRenderer.endSwapChainRenderPass(commandBuffer);
 
@@ -417,7 +418,7 @@ void ShAPP::updateOverlay(Input& input)
 	ImGui::Begin("Vulkan Example", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 	ImGui::TextUnformatted("Vulkan URP");
 	ImGui::TextUnformatted("RTX 4060TI");
-	ImGui::Text("%.2f ms/frame (%.1d fps)", (1000.0f / lastFPS), lastFPS);
+	//ImGui::Text("%.2f ms/frame (%.1d fps)", (1000.0f / lastFPS), lastFPS);
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 5.0f * UIOverlay.scale));

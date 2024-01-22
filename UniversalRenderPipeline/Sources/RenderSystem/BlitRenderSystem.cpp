@@ -7,14 +7,14 @@ BlitRenderSystem::BlitRenderSystem(ShDevice& device, VkRenderPass renderPass, st
 	createPipeline(renderPass);
 }
 
-void BlitRenderSystem::renderGameObjects(FrameInfo& frameInfo, const std::vector<VkDescriptorSet>& descriptorSets)
+void BlitRenderSystem::renderGameObjects(FrameInfo& frameInfo, const std::vector<VkDescriptorSet>& descriptorSets, VkCommandBuffer commandBuffer)
 {
-	lvePipeline->bind(frameInfo.commandBuffer);
+	lvePipeline->bind(commandBuffer);
 
 	for (int i = 0; i < descriptorSets.size(); i++)
 	{
 		vkCmdBindDescriptorSets(
-			frameInfo.commandBuffer,
+			commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			pipelineLayout,
 			i,
@@ -24,7 +24,7 @@ void BlitRenderSystem::renderGameObjects(FrameInfo& frameInfo, const std::vector
 			nullptr);
 	}
 
-	vkCmdDraw(frameInfo.commandBuffer, 3, 1, 0, 0);
+	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 }
 
 static std::vector<VkVertexInputBindingDescription> getEmptyInputBinding()
