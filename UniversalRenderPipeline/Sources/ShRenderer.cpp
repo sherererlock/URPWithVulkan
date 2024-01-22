@@ -115,8 +115,8 @@ void ShRenderer::endFrame()
 
 VkCommandBuffer ShRenderer::beginCommandBuffer()
 {
-    if (!isFrameStarted)
-        return VK_NULL_HANDLE;
+    //if (!isFrameStarted)
+    //    return VK_NULL_HANDLE;
 
     auto commandBuffer = getCurrentCommandBuffer();
     VkCommandBufferBeginInfo beginInfo{};

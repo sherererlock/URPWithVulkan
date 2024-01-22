@@ -33,7 +33,7 @@ public:
 	bool isFrameInProgress() const { return isFrameStarted; }
 
 	VkCommandBuffer getCurrentCommandBuffer() const {
-		assert(isFrameStarted && "Cannot get command buffer when frame not in progress");
+		//assert(isFrameStarted && "Cannot get command buffer when frame not in progress");
 		return commandBuffers[currentFrameIndex];
 	}
 

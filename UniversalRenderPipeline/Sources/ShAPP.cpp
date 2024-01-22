@@ -19,16 +19,9 @@
 #include "shbuffer.h"
 #include "camera.hpp"
 
-#include "RenderSystem/SimpleRenderSystem.h"
-#include "RenderSystem/GltfRenderSystem.h"
-#include "RenderSystem/PointLight.h"
+
 #include "InputController.h"
-#include "RenderPass/ShadowPass.h"
-#include "RenderSystem/ShadowRenderSystem.h"
-#include "RenderPass/BasePass.h"
-#include "RenderPass/LightingPass.h"
-#include "RenderPass/BlitPass.h"
-#include "RenderSystem/BlitRenderSystem.h"
+
 
 #include "macros.hlsl"
 
@@ -51,6 +44,10 @@ ShAPP::ShAPP() {
 		.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_SAMPLER_BUFFER_NUM)
 		.build();
 	loadGameObjects();
+
+	blitDescriptorSets.resize(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
+	lightDescriptorSets.resize(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
+	imageDescriptorSets.resize(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
 }
 
 ShAPP::~ShAPP()
@@ -87,13 +84,13 @@ void ShAPP::run()
 	}
 
 #ifdef SHADOW
-	ShadowPass shadowPass{ shDevice,ShadowResolution, ShadowResolution };
-	ShadowRenderSystem shadowRenderSystem{ shDevice, shadowPass.getRenderPass(), "shaders/spv/shadow_vert.hlsl.spv", "shaders/spv/shadow_frag.hlsl.spv", shadowPass.getShadowMapImageInfo() };
-	shadowRenderSystem.setupDescriptorSet(*globalPool);
+	shadowPass = std::make_unique<ShadowPass>(shDevice,ShadowResolution, ShadowResolution);
+	shadowRenderSystem = std::make_unique <ShadowRenderSystem>( shDevice, shadowPass->getRenderPass(), "shaders/spv/shadow_vert.hlsl.spv", "shaders/spv/shadow_frag.hlsl.spv", shadowPass->getShadowMapImageInfo() );
+	shadowRenderSystem->setupDescriptorSet(*globalPool);
 #endif
 
-	BasePass basePass{ shDevice, WIDTH, HEIGHT };
-	LightingPass lightPass{ shDevice, WIDTH, HEIGHT, shRenderer.getFormat() };
+	basePass = std::make_unique<BasePass>( shDevice, WIDTH, HEIGHT );
+	lightPass = std::make_unique<LightingPass>(shDevice, WIDTH, HEIGHT, shRenderer.getFormat());
 
 	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout() };
 
@@ -127,7 +124,7 @@ void ShAPP::run()
 	vs_shader = "shaders/spv/gbuffer_anim.vert.spv";
 #endif
 
-	GltfRenderSystem baseRenderSystem{ shDevice, basePass.getRenderPass(), setlayouts, vs_shader, ps_shader, shadowRenderSystemPtr, attachmentCount };
+	baseRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, basePass->getRenderPass(), setlayouts, vs_shader, ps_shader, shadowRenderSystemPtr, attachmentCount);
 
 	auto lightingSetLayout0 =
 		ShDescriptorSetLayout::Builder(shDevice)
@@ -160,9 +157,8 @@ void ShAPP::run()
 		cameraBuffers[i]->map();
 	}
 
-	std::vector<VkDescriptorSet> lightDescriptorSets(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
 #ifdef SHADOW
-	auto& shadowBuffer = shadowRenderSystem.getBuffers();
+	auto& shadowBuffer = shadowRenderSystem->getBuffers();
 #endif
 
 	for (int i = 0; i < lightDescriptorSets.size(); i++)
@@ -181,19 +177,18 @@ void ShAPP::run()
 			.build(lightDescriptorSets[i]);
 	}
 
-	std::vector<VkDescriptorSet> imageDescriptorSets(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
-	VkDescriptorImageInfo colorImageInfo = basePass.GetAlbedo();
-	VkDescriptorImageInfo normalImageInfo = basePass.GetNormal();
-	VkDescriptorImageInfo emissiveImageInfo = basePass.GetEmissive();
-	VkDescriptorImageInfo depthImageInfo = basePass.GetDepth();
+	VkDescriptorImageInfo colorImageInfo = basePass->GetAlbedo();
+	VkDescriptorImageInfo normalImageInfo = basePass->GetNormal();
+	VkDescriptorImageInfo emissiveImageInfo = basePass->GetEmissive();
+	VkDescriptorImageInfo depthImageInfo = basePass->GetDepth();
 
 	uint32_t positionindex = 4;
 #ifdef SHADOW
 	positionindex = 5;
-	VkDescriptorImageInfo shadowImageInfo = shadowPass.getShadowMapImageInfo();
+	VkDescriptorImageInfo shadowImageInfo = shadowPass->getShadowMapImageInfo();
 #endif
 
-	VkDescriptorImageInfo psotionImageInfo = basePass.GetPosition();
+	VkDescriptorImageInfo psotionImageInfo = basePass->GetPosition();
 	for (int i = 0; i < imageDescriptorSets.size(); i++)
 	{
 		
@@ -213,12 +208,12 @@ void ShAPP::run()
 	}
 
 	std::vector<VkDescriptorSetLayout> lightSetLayouts { lightingSetLayout0->getDescriptorSetLayout(), lightingSetLayout1->getDescriptorSetLayout()};
-	BlitRenderSystem lightingRenderSystem{ shDevice, lightPass.getRenderPass(), lightSetLayouts,  "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv" };
+	lightingRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, lightPass->getRenderPass(), lightSetLayouts,  "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv");
 
-	PointLightSystem pointLightSystem{
+	pointLightSystem = std::make_unique<PointLightSystem>(
 		shDevice,
 		shRenderer.getSwapChainRenderPass(),
-		globalSetLayout->getDescriptorSetLayout() };
+		globalSetLayout->getDescriptorSetLayout());
 
 	auto blitSetLayout =
 		ShDescriptorSetLayout::Builder(shDevice)
@@ -226,10 +221,9 @@ void ShAPP::run()
 		.build();
 
 	std::vector<VkDescriptorSetLayout> blitSetLayouts{ blitSetLayout->getDescriptorSetLayout()};
-	BlitRenderSystem blitRenderSystem{ shDevice, shRenderer.getSwapChainRenderPass(), blitSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/blit_frag.hlsl.spv" };
+	blitRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, shRenderer.getSwapChainRenderPass(), blitSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/blit_frag.hlsl.spv");
 
-	std::vector<VkDescriptorSet> blitDescriptorSets(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
-	auto lightingColorImageInfo = lightPass.getColor();
+	auto lightingColorImageInfo = lightPass->getColor();
 	for (int i = 0; i < imageDescriptorSets.size(); i++)
 	{
 		ShDescriptorWriter(*blitSetLayout, *globalPool)
@@ -250,12 +244,9 @@ void ShAPP::run()
 	createUIOverlay();
 	updateOverlay(input);
 	uint32_t frameCounter = 0;
-
+	uint32_t bufferCount = 0;
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastTimestamp, tPrevEnd;
 
-	auto& pointLightGO = ShGameObject::getLight(gameObjects);
-
-	int bufferCount = 0;
 	while (!shWindow.shouldClose()) {
 		glfwPollEvents();
 
@@ -319,7 +310,7 @@ void ShAPP::run()
 			globalDescriptorSets[frameIndex],
 			gameObjects };
 
-		pointLightSystem.update(frameInfo, ubo);
+		pointLightSystem->update(frameInfo, ubo);
 
 		uboBuffers[frameIndex]->writeToBuffer(&ubo);
 		uboBuffers[frameIndex]->flush();
@@ -328,51 +319,10 @@ void ShAPP::run()
 		cameraBuffers[frameIndex]->flush();
 
 		updateOverlay(input);
-
-		if (bufferCount < 3)
+		if (bufferCount < ShSwapchain::MAX_FRAMES_IN_FLIGHT)
 		{
-			if (auto commandBuffer = shRenderer.beginCommandBuffer())
-			{
-				bufferCount++;
-
-#ifdef  SHADOW
-				// shadow pass
-				shadowRenderSystem.setupLight(pointLightGO, frameIndex);
-				shadowPass.beginRenderPass(commandBuffer);
-				shadowRenderSystem.renderGameObjects(frameInfo, commandBuffer);
-				shadowPass.endRenderPass(commandBuffer);
-#endif //  SHADOW
-
-#ifdef DEFERRENDERING
-				// base pass
-				basePass.beginRenderPass(commandBuffer);
-				baseRenderSystem.renderGameObjects(frameInfo, commandBuffer);
-				basePass.endRenderPass(commandBuffer);
-
-				// lighting pass
-				lightPass.beginRenderPass(commandBuffer);
-				lightingRenderSystem.renderGameObjects(frameInfo, { lightDescriptorSets[frameIndex], imageDescriptorSets[frameIndex] }, commandBuffer);
-				lightPass.endRenderPass(commandBuffer);
-#endif
-
-				// render
-				shRenderer.beginSwapChainRenderPass(commandBuffer);
-
-				// order here matters
-				//simpleRenderSystem.renderGameObjects(frameInfo);
-#ifdef DEFERRENDERING
-				blitRenderSystem.renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] }, commandBuffer);
-#else
-				gltfRenderSystem.renderGameObjects(frameInfo);
-#endif
-
-				pointLightSystem.render(frameInfo, commandBuffer);
-
-				drawUI(commandBuffer);
-				shRenderer.endSwapChainRenderPass(commandBuffer);
-
-				shRenderer.endCommandBuffer();
-			}
+			buildCommandBuffer(frameIndex, frameInfo);
+			bufferCount++;
 		}
 
 		shRenderer.endFrame();
@@ -387,6 +337,7 @@ void ShAPP::run()
 			frameCounter = 0;
 			lastTimestamp = tEnd;
 		}
+		std::cout << lastFPS << std::endl;
 	}
 
 	vkDeviceWaitIdle(shDevice.device());
@@ -416,7 +367,7 @@ void ShAPP::updateOverlay(Input& input)
 	ImGui::Begin("Vulkan Example", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 	ImGui::TextUnformatted("Vulkan URP");
 	ImGui::TextUnformatted("RTX 4060TI");
-	//ImGui::Text("%.2f ms/frame (%.1d fps)", (1000.0f / lastFPS), lastFPS);
+	ImGui::Text("%.2f ms/frame (%.1d fps)", (1000.0f / 10), 10);
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 5.0f * UIOverlay.scale));
@@ -500,9 +451,48 @@ void ShAPP::OnUpdateUIOverlay()
 
 }
 
-void ShAPP::buildCommandBuffer()
+void ShAPP::buildCommandBuffer(uint32_t frameIndex, FrameInfo& frameInfo)
 {
+	auto commandBuffer = shRenderer.beginCommandBuffer();
+	auto& pointLightGO = ShGameObject::getLight(gameObjects);
 
+#ifdef  SHADOW
+	// shadow pass
+	shadowRenderSystem->setupLight(pointLightGO, frameIndex);
+	shadowPass->beginRenderPass(commandBuffer);
+	shadowRenderSystem->renderGameObjects(frameInfo, commandBuffer);
+	shadowPass->endRenderPass(commandBuffer);
+#endif //  SHADOW
+
+#ifdef DEFERRENDERING
+	// base pass
+	basePass->beginRenderPass(commandBuffer);
+	baseRenderSystem->renderGameObjects(frameInfo, commandBuffer);
+	basePass->endRenderPass(commandBuffer);
+
+	// lighting pass
+	lightPass->beginRenderPass(commandBuffer);
+	lightingRenderSystem->renderGameObjects(frameInfo, { lightDescriptorSets[frameIndex], imageDescriptorSets[frameIndex] }, commandBuffer);
+	lightPass->endRenderPass(commandBuffer);
+#endif
+
+	// render
+	shRenderer.beginSwapChainRenderPass(commandBuffer);
+
+	// order here matters
+	//simpleRenderSystem.renderGameObjects(frameInfo);
+#ifdef DEFERRENDERING
+	blitRenderSystem->renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] }, commandBuffer);
+#else
+	gltfRenderSystem.renderGameObjects(frameInfo);
+#endif
+
+	pointLightSystem->render(frameInfo, commandBuffer);
+
+	drawUI(commandBuffer);
+	shRenderer.endSwapChainRenderPass(commandBuffer);
+
+	shRenderer.endCommandBuffer();
 }
 
 const std::string MODEL_PATH = "Assets/models/buster_drone/busterDrone.gltf";
