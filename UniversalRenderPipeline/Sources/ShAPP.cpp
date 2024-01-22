@@ -312,11 +312,14 @@ void ShAPP::run()
 
 		pointLightSystem->update(frameInfo, ubo);
 
-		uboBuffers[frameIndex]->writeToBuffer(&ubo);
-		uboBuffers[frameIndex]->flush();
+		if (camera.updated)
+		{
+			uboBuffers[frameIndex]->writeToBuffer(&ubo);
+			uboBuffers[frameIndex]->flush();
 
-		cameraBuffers[frameIndex]->writeToBuffer(&cameraubo);
-		cameraBuffers[frameIndex]->flush();
+			cameraBuffers[frameIndex]->writeToBuffer(&cameraubo);
+			cameraBuffers[frameIndex]->flush();
+		}
 
 		updateOverlay(input);
 		if (bufferCount < ShSwapchain::MAX_FRAMES_IN_FLIGHT)

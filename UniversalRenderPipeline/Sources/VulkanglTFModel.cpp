@@ -1612,7 +1612,12 @@ void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t
 	if (node->mesh) {
 		for (Primitive* primitive : node->mesh->primitives) {
 
+#ifdef CPU_ANIM
+			glm::mat4 nodeMatrix = modelMatrix;
+#else
 			glm::mat4 nodeMatrix = modelMatrix * node->getMatrix();
+#endif // CPU_ANIM
+
 
 			bool skip = false;
 			const vkglTF::Material& material = primitive->material;
@@ -1760,11 +1765,13 @@ void vkglTF::Model::updateAnimation(uint32_t index, float time)
 			}
 		}
 	}
-	//if (updated) {
-	//	for (auto &node : nodes) {
-	//		node->update();
-	//	}
-	//}
+#ifdef CPU_ANIM
+	if (updated) {
+		for (auto &node : nodes) {
+			node->update();
+		}
+	}
+#endif
 }
 
 /*
