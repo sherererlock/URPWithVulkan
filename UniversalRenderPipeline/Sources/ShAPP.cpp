@@ -244,7 +244,7 @@ void ShAPP::run()
 	createUIOverlay();
 	updateOverlay(input);
 	uint32_t frameCounter = 0;
-	uint32_t bufferCount = 0;
+
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastTimestamp, tPrevEnd;
 
 	while (!shWindow.shouldClose()) {
@@ -337,7 +337,7 @@ void ShAPP::run()
 			frameCounter = 0;
 			lastTimestamp = tEnd;
 		}
-		std::cout << lastFPS << std::endl;
+		//std::cout << lastFPS << std::endl;
 	}
 
 	vkDeviceWaitIdle(shDevice.device());
@@ -367,7 +367,7 @@ void ShAPP::updateOverlay(Input& input)
 	ImGui::Begin("Vulkan Example", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 	ImGui::TextUnformatted("Vulkan URP");
 	ImGui::TextUnformatted("RTX 4060TI");
-	ImGui::Text("%.2f ms/frame (%.1d fps)", (1000.0f / 10), 10);
+	ImGui::Text("%.2f ms/frame (%.1d fps)", (1000.0f / lastFPS), lastFPS);
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 5.0f * UIOverlay.scale));
@@ -384,7 +384,7 @@ void ShAPP::updateOverlay(Input& input)
 	ImGui::Render();
 
 	if (UIOverlay.update() || UIOverlay.updated) {
-		//buildCommandBuffers();
+		bufferCount = 0;
 		UIOverlay.updated = false;
 	}
 

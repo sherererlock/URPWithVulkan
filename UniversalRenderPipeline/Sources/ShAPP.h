@@ -51,6 +51,8 @@ private:
 	vks::UIOverlay UIOverlay;
 	float frameTimer;
 	uint32_t lastFPS = 0;
+
+	uint32_t bufferCount = 0;
 public:
 	static constexpr int WIDTH = 720;
 	static constexpr int HEIGHT = 576;
