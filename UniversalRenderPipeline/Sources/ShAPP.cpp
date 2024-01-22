@@ -86,7 +86,6 @@ void ShAPP::run()
 			.build(globalDescriptorSets[i]);
 	}
 
-
 #ifdef SHADOW
 	ShadowPass shadowPass{ shDevice,ShadowResolution, ShadowResolution };
 	ShadowRenderSystem shadowRenderSystem{ shDevice, shadowPass.getRenderPass(), "shaders/spv/shadow_vert.hlsl.spv", "shaders/spv/shadow_frag.hlsl.spv", shadowPass.getShadowMapImageInfo() };
@@ -249,7 +248,7 @@ void ShAPP::run()
 	Input input(camera, *this);
 
 	createUIOverlay();
-
+	updateOverlay(input);
 	uint32_t frameCounter = 0;
 
 	std::chrono::time_point<std::chrono::high_resolution_clock> lastTimestamp, tPrevEnd;
@@ -343,7 +342,6 @@ void ShAPP::run()
 				shadowRenderSystem.renderGameObjects(frameInfo, commandBuffer);
 				shadowPass.endRenderPass(commandBuffer);
 #endif //  SHADOW
-
 
 #ifdef DEFERRENDERING
 				// base pass

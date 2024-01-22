@@ -447,5 +447,7 @@ VkResult ShSwapchain::submitFrame(uint32_t* imageIndex)
 
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
+    vkQueueWaitIdle(device.presentQueue());
+
     return result;
 }

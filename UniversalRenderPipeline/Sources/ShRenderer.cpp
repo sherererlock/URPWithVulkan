@@ -110,7 +110,7 @@ void ShRenderer::endFrame()
 
     isFrameStarted = false;
     currentFrameIndex = (currentFrameIndex + 1) % ShSwapchain::MAX_FRAMES_IN_FLIGHT;
-    vkQueueWaitIdle(shDevice.presentQueue());
+    //vkQueueWaitIdle(shDevice.presentQueue());
 }
 
 VkCommandBuffer ShRenderer::beginCommandBuffer()
