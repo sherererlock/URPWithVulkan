@@ -1,10 +1,10 @@
 #include "BlitRenderSystem.h"
 
-BlitRenderSystem::BlitRenderSystem(ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader)
+BlitRenderSystem::BlitRenderSystem(ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader, uint32_t subpass)
 	: RenderSystem(device, renderPass, vertexShader, fragmentShader)
 {
 	createPipelineLayout(setlayouts);
-	createPipeline(renderPass);
+	createPipeline(renderPass, subpass);
 }
 
 void BlitRenderSystem::renderGameObjects(FrameInfo& frameInfo, const std::vector<VkDescriptorSet>& descriptorSets, VkCommandBuffer commandBuffer)

@@ -14,6 +14,7 @@
 #include "RenderPass/BasePass.h"
 #include "RenderPass/LightingPass.h"
 #include "RenderPass/BlitPass.h"
+#include "RenderPass/DeferRenderingPass.h"
 #include "RenderSystem/BlitRenderSystem.h"
 #include "RenderSystem/SimpleRenderSystem.h"
 #include "RenderSystem/GltfRenderSystem.h"
@@ -44,6 +45,11 @@ private:
 	std::vector<VkDescriptorSet> blitDescriptorSets;
 	std::vector<VkDescriptorSet> lightDescriptorSets;
 	std::vector<VkDescriptorSet> imageDescriptorSets;
+
+	std::unique_ptr<DeferRenderingPass> deferRenderingPass;
+	std::unique_ptr<GltfRenderSystem> deferbaseRenderSystem;
+	std::unique_ptr<BlitRenderSystem> deferlightingRenderSystem;
+	std::unique_ptr<GltfRenderSystem> transparentRenderSystem;
 
 	// note: order of declarations matters
 	std::unique_ptr<ShDescriptorPool> globalPool{};

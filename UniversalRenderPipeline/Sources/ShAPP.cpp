@@ -223,6 +223,19 @@ void ShAPP::run()
 	std::vector<VkDescriptorSetLayout> blitSetLayouts{ blitSetLayout->getDescriptorSetLayout()};
 	blitRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, shRenderer.getSwapChainRenderPass(), blitSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/blit_frag.hlsl.spv");
 
+
+#ifdef SUBPASS
+	VkFormat dformat = shDevice.findSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+	deferRenderingPass = std::make_unique<DeferRenderingPass>(shDevice, WIDTH, HEIGHT, shRenderer.getFormat(), dformat);
+	deferbaseRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), setlayouts, vs_shader, ps_shader, shadowRenderSystemPtr, attachmentCount, 0);
+	deferlightingRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), lightSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv", 1);
+	
+	transparentRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), setlayouts, vs_shader, ps_shader, shadowRenderSystemPtr, attachmentCount, 2);
+#endif
+
 	auto lightingColorImageInfo = lightPass->getColor();
 	for (int i = 0; i < imageDescriptorSets.size(); i++)
 	{
