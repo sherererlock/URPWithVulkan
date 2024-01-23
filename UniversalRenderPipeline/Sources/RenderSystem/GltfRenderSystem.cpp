@@ -14,14 +14,14 @@
 #include <stdexcept>
 
 GltfRenderSystem::GltfRenderSystem(
-	ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader, ShadowRenderSystem* rendersystem, uint32_t colorBlendAttachmentCount)
+	ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader, ShadowRenderSystem* rendersystem, uint32_t colorBlendAttachmentCount, uint32_t subpass)
 	: RenderSystem(device, renderPass, vertexShader, fragmentShader), shadowRenderSystem(rendersystem), colorBlendAttachmentCount(colorBlendAttachmentCount)
 {
 	createPipelineLayout(setlayouts);
-	createPipeline(renderPass);
+	createPipeline(renderPass, subpass);
 }
 
-void GltfRenderSystem::createPipeline(VkRenderPass renderPass)
+void GltfRenderSystem::createPipeline(VkRenderPass renderPass, uint32_t subpass)
 {
 	assert(pipelineLayout != nullptr && "GltfRenderSystem Cannot create pipeline before pipeline layout");
 
@@ -29,6 +29,7 @@ void GltfRenderSystem::createPipeline(VkRenderPass renderPass)
 	ShPipeline::defaultPipelineConfigInfo(pipelineConfig, vkglTF::Vertex::getBindingDescriptions, vkglTF::Vertex::getAttributeDescriptions, colorBlendAttachmentCount);
 	pipelineConfig.renderPass = renderPass;
 	pipelineConfig.pipelineLayout = pipelineLayout;
+	pipelineConfig.subpass = subpass;
 	lvePipeline = std::make_unique<ShPipeline>(
 		lveDevice,
 		vertexShader,

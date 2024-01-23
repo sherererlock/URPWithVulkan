@@ -36,7 +36,7 @@ public:
 	void setupDescriptorSet(ShDescriptorPool& pool);
 	void setupLight(const ShGameObject& light, int frameIndex);
 
-	virtual void createPipeline(VkRenderPass renderPass) override;
+	virtual void createPipeline(VkRenderPass renderPass, uint32_t subpass = 0) override;
 	virtual void renderGameObjects(FrameInfo& frameInfo, VkCommandBuffer commandBuffer) override;
 };
 

@@ -17,7 +17,7 @@ public:
 
 	virtual void renderGameObjects(FrameInfo& frameInfo,
 		VkCommandBuffer commandBuffer) = 0;
-	virtual void createPipeline(VkRenderPass renderPass) = 0;
+	virtual void createPipeline(VkRenderPass renderPass, uint32_t subpass = 0) = 0;
 	virtual void createPipelineLayout(std::vector<VkDescriptorSetLayout>& setLayouts);
 
 protected:

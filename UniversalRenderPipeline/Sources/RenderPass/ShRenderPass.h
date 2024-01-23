@@ -51,7 +51,7 @@ public:
 
 	VkRenderPass getRenderPass() const { return renderpass; }
 
-	void createRenderPass();
+	virtual void createRenderPass();
 	void createFrameBuffer();
 
 	void beginRenderPass(VkCommandBuffer commandBuffer);

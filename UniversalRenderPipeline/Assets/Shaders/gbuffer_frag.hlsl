@@ -10,6 +10,20 @@ struct VSOutput
     [[vk::location(3)]] float3 Position : TEXCOORD2;
 };
 
+#ifdef SUBPASS
+
+struct FSOutput
+{
+    float4 color : SV_TARGET0;
+    float4 albedo : SV_TARGET1;
+    float4 normal : SV_TARGET2;
+    float4 emmisive : SV_TARGET3;
+#ifndef CALC_POSITOIN
+    float4 position : SV_TARGET4;
+#endif
+};
+
+#else
 struct FSOutput
 {
     float4 albedo : SV_TARGET0;
@@ -19,6 +33,7 @@ struct FSOutput
     float4 position : SV_TARGET3;
 #endif
 };
+#endif
 
 struct PointLight
 {
@@ -84,7 +99,11 @@ FSOutput main(VSOutput input) : SV_TARGET
     float2 rm = textureRoughness.Sample(samplerRoughness, input.UV).gb;
     float roughness = rm.x;
     float metallic = rm.y;
-        
+    
+#ifdef SUBPASS 
+    output.color = float4(0, 0, 0, 1);
+#endif
+    
     output.albedo = float4(albedo, roughness);
     output.normal = float4(normal * 0.5f + float3(0.5f, 0.5f, 0.5f), metallic);
     //output.normal = float4(normal, metallic);

@@ -37,7 +37,7 @@ static std::vector<VkVertexInputAttributeDescription> getEmptyAttributeDescripti
 	return {};
 }
 
-void BlitRenderSystem::createPipeline(VkRenderPass renderPass)
+void BlitRenderSystem::createPipeline(VkRenderPass renderPass, uint32_t subpass)
 {
 	assert(pipelineLayout != nullptr && "GltfRenderSystem Cannot create pipeline before pipeline layout");
 
@@ -45,7 +45,7 @@ void BlitRenderSystem::createPipeline(VkRenderPass renderPass)
 	ShPipeline::defaultPipelineConfigInfo(pipelineConfig, getEmptyInputBinding, getEmptyAttributeDescriptions);
 	pipelineConfig.renderPass = renderPass;
 	pipelineConfig.pipelineLayout = pipelineLayout;
-
+	pipelineConfig.subpass = subpass;
 	pipelineConfig.depthStencilInfo.depthWriteEnable = VK_FALSE;
 	pipelineConfig.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
 	lvePipeline = std::make_unique<ShPipeline>(

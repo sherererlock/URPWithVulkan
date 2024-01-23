@@ -11,6 +11,6 @@ public:
 
 	virtual void renderGameObjects(FrameInfo& frameInfo, VkCommandBuffer commandBuffer) override;
 
-	virtual void createPipeline(VkRenderPass renderPass) override;
+	virtual void createPipeline(VkRenderPass renderPass, uint32_t subpass = 0) override;
 };
 

@@ -22,7 +22,7 @@ SimpleRenderSystem::~SimpleRenderSystem()
 {
 }
 
-void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
+void SimpleRenderSystem::createPipeline(VkRenderPass renderPass, uint32_t subpass) {
 	assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
 
 	PipelineConfigInfo pipelineConfig{};

@@ -57,6 +57,45 @@ cbuffer shadowUbo : register(b2)
 
 #endif
 
+#ifdef SUBPASS
+
+[[vk::input_attachment_index(2)]][[vk::binding(2)]] SubpassInput inputAlbedo;
+[[vk::input_attachment_index(1)]][[vk::binding(1)]] SubpassInput inputNormal;
+[[vk::input_attachment_index(1)]][[vk::binding(1)]] SubpassInput inputEmissive;
+#ifndef CALC_POSITOIN
+[[vk::input_attachment_index(0)]][[vk::binding(0)]] SubpassInput inputPosition;
+#endif
+
+#ifdef SHADOW 
+Texture2D textureShadow : register(t0, space1);
+SamplerState samplerShadow : register(s0, space1);
+#define TN t5
+#else
+#define TN t4
+#endif
+
+float4 getBuffer1(float2 uv)
+{
+    return inputAlbedo.SubpassLoad();
+}
+
+float4 getBuffer2(float2 uv)
+{
+    return inputNormal.SubpassLoad();
+}
+
+float4 getBuffer3(float2 uv)
+{
+    return inputEmissive.SubpassLoad();
+}
+
+float4 getBuffer4(float2 uv)
+{
+    return inputPosition.SubpassLoad();
+}
+
+#else
+
 Texture2D textureColor : register(t0, space1);
 SamplerState samplerColor : register(s0, space1);
 
@@ -82,6 +121,27 @@ Texture2D texturePosition : register(TN, space1);
 SamplerState samplerPosition : register(TN, space1);
 #endif
 
+float4 getBuffer1(float2 uv)
+{
+    return textureColor.Sample(samplerColor, uv);
+}
+
+float4 getBuffer2(float2 uv)
+{
+    return textureNormal.Sample(samplerNormal, uv);
+}
+
+float4 getBuffer3(float2 uv)
+{
+    return textureEmissive.Sample(samplerEmissive, uv);
+}
+
+float4 getBuffer4(float2 uv)
+{
+    return texturePosition.Sample(samplerPosition, uv);
+}
+
+#endif
 
 #include "shadow.hlsl"
 #include "common.hlsl"
@@ -90,13 +150,12 @@ SamplerState samplerPosition : register(TN, space1);
 float4 main(VSOutput input) : SV_TARGET
 {
     float2 uv = input.UV;
-    float4 gbuffer3 = textureEmissive.Sample(samplerEmissive, uv);
+    float4 gbuffer3 = getBuffer3(uv);
     if (gbuffer3.a != 1.0f)
         return float4(0.0f, 0.0f, 0.0f, 1.0f);
     
-    float4 gbuffer1 = textureColor.Sample(samplerColor, uv);
-    float4 gbuffer2 = textureNormal.Sample(samplerNormal, uv);
-    float depth = textureDepth.Sample(samplerDepth, uv).r;
+    float4 gbuffer1 = getBuffer1(uv);
+    float4 gbuffer2 = getBuffer2(uv);
     
     float3 albedo = pow(gbuffer1.rgb, float3(2.2f, 2.2f, 2.2f));
     float3 normal = normalize(gbuffer2.xyz * 2.0f - float3(1.0f, 1.0f, 1.0f));
@@ -109,17 +168,14 @@ float4 main(VSOutput input) : SV_TARGET
     float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
     
 #ifndef CALC_POSITOIN
-    float4 gbuffer4 = texturePosition.Sample(samplerPosition, uv);
+    float4 gbuffer4 = getBuffer4(uv);
     float3 worldPos = gbuffer4.xyz;
 #else
+    float depth = textureDepth.Sample(samplerDepth, uv).r;
     float ldepth = linearDepth(depth, ubo.camereInfo.x, ubo.camereInfo.y);
     float3 viewPos = ReconstructWorldPos(uv, ldepth, cameraubo.leftTop.xyz, cameraubo.left2Right.xyz, cameraubo.top2bottom.xyz, ubo.camereInfo.z);
     float3 worldPos = viewPos + ubo.viewPos.xyz;
 #endif
-    
-    float ldepth = linearDepth(depth, ubo.camereInfo.x, ubo.camereInfo.y);
-    float3 viewPos = ReconstructWorldPos(uv, ldepth, cameraubo.leftTop.xyz, cameraubo.left2Right.xyz, cameraubo.top2bottom.xyz, ubo.camereInfo.z);
-    float3 worldPos1 = viewPos + ubo.viewPos.xyz;
     
     float shadow = 1.0f;
 #ifdef SHADOW 

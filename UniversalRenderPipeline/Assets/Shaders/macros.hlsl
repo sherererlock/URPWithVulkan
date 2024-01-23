@@ -13,3 +13,5 @@
 //#define CPU_SKIN
 //#define GPU_SKIN
 #define CPU_ANIM
+
+#define SUBPASS

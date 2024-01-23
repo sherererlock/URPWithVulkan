@@ -70,7 +70,7 @@ void ShadowRenderSystem::setupLight(const ShGameObject& light, int frameIndex)
 	buffers[frameIndex]->flush();
 }
 
-void ShadowRenderSystem::createPipeline(VkRenderPass renderPass)
+void ShadowRenderSystem::createPipeline(VkRenderPass renderPass, uint32_t subpass)
 {
 	assert(pipelineLayout != nullptr && "GltfRenderSystem Cannot create pipeline before pipeline layout");
 

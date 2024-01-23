@@ -23,7 +23,7 @@ public:
 
 private:
 	void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
-	void createPipeline(VkRenderPass renderPass);
+	void createPipeline(VkRenderPass renderPass, uint32_t subpass = 0);
 
 	ShDevice& lveDevice;
 

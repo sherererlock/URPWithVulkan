@@ -9,7 +9,7 @@ public:
 	void renderGameObjects(FrameInfo& frameInfo, const std::vector<VkDescriptorSet>& descriptorSets, VkCommandBuffer commandBuffer);
 
 	virtual void renderGameObjects(FrameInfo& frameInfo, VkCommandBuffer commandBuffer) override {};
-	virtual void createPipeline(VkRenderPass renderPass) override;
+	virtual void createPipeline(VkRenderPass renderPass, uint32_t subpass = 0) override;
 	virtual void createPipelineLayout(std::vector<VkDescriptorSetLayout>& setLayouts) override;
 };
 
