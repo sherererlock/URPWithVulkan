@@ -29,7 +29,7 @@ std::vector<VkAttachmentDescription> DeferRenderingPass::GetAttachmentDescriptio
     std::vector<VkAttachmentDescription> attachments = { colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, depthAttachmentDes };
 #else
     std::vector<VkAttachmentDescription> attachments = { colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, depthAttachmentDes };
-    attachments[3].format = VK_FORMAT_R16G16B16A16_SFLOAT;    
+    attachments[4].format = VK_FORMAT_R16G16B16A16_SFLOAT;    
 #endif // CALC_POSITION
 
     attachments[0].format = color.format;

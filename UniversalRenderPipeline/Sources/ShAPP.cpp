@@ -495,11 +495,10 @@ void ShAPP::initSubpassDeferRendering()
 
 	std::string vs_shader = "shaders/spv/gbuffer_vert.hlsl.spv";
 	std::string ps_shader = "shaders/spv/gbuffer_frag.hlsl.spv";
-	uint32_t attachmentCount = 3;
-	ShadowRenderSystem* shadowRenderSystemPtr = nullptr;
+	uint32_t attachmentCount = 4;
 
 #ifndef CALC_POSITION
-	attachmentCount = 4;
+	attachmentCount = 5;
 #endif
 
 #ifdef CPU_SKIN
@@ -602,7 +601,7 @@ void ShAPP::initSubpassDeferRendering()
 	}
 
 	deferRenderingPass = std::make_unique<DeferRenderingPass>(shDevice, WIDTH, HEIGHT, shRenderer.getFormat(), dformat);
-	deferbaseRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), setlayouts, vs_shader, ps_shader, shadowRenderSystemPtr, attachmentCount, 0);
+	deferbaseRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), setlayouts, vs_shader, ps_shader, nullptr, attachmentCount, 0);
 	deferlightingRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), lightSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv", 1);
 	transparentRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), transparentSetLayouts, "shaders/spv/transparent_vert.hlsl.spv", "shaders/spv/transparent_frag.hlsl.spv", shadowRenderSystemPtr, 1, 2);
 
