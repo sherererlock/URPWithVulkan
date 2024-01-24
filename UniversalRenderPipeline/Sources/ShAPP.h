@@ -57,8 +57,13 @@ private:
 	vks::UIOverlay UIOverlay;
 	float frameTimer;
 	uint32_t lastFPS = 0;
-
 	uint32_t bufferCount = 0;
+
+	std::unique_ptr<ShDescriptorSetLayout> globalSetLayout;
+	std::vector<std::unique_ptr<ShBuffer>> uboBuffers{ ShSwapchain::MAX_FRAMES_IN_FLIGHT };
+	std::vector<std::unique_ptr<ShBuffer>> cameraBuffers{ ShSwapchain::MAX_FRAMES_IN_FLIGHT };
+
+	std::unique_ptr<ShTexture2D> transparentTex;
 public:
 	static constexpr int WIDTH = 720;
 	static constexpr int HEIGHT = 576;
@@ -73,6 +78,13 @@ public:
 	void run();
 	void nextFrame();
 	void updateOverlay(Input& input);
+
+	void initDeferRendering();
+	void initShadow();
+	void initSubpassDeferRendering();
+	void initForwardRendering();
+	void initBlit();
+	void initLight();
 
 	void drawUI(const VkCommandBuffer commandBuffer);
 	void createUIOverlay();

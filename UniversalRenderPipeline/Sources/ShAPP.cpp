@@ -57,8 +57,6 @@ ShAPP::~ShAPP()
 
 void ShAPP::run()
 {
-	std::vector<std::unique_ptr<ShBuffer>> uboBuffers(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
-
 	for (int i = 0; i < uboBuffers.size(); i++)
 	{
 		uboBuffers[i] = std::make_unique<ShBuffer>(
@@ -70,7 +68,18 @@ void ShAPP::run()
 		uboBuffers[i]->map();
 	}
 
-	auto globalSetLayout =
+	for (int i = 0; i < cameraBuffers.size(); i++)
+	{
+		cameraBuffers[i] = std::make_unique<ShBuffer>(
+			shDevice,
+			sizeof(CameraExtentUBO),
+			1,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+		cameraBuffers[i]->map();
+	}
+
+	globalSetLayout =
 		ShDescriptorSetLayout::Builder(shDevice)
 		.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
 		.build();
@@ -83,166 +92,10 @@ void ShAPP::run()
 			.build(globalDescriptorSets[i]);
 	}
 
-#ifdef SHADOW
-	shadowPass = std::make_unique<ShadowPass>(shDevice,ShadowResolution, ShadowResolution);
-	shadowRenderSystem = std::make_unique <ShadowRenderSystem>( shDevice, shadowPass->getRenderPass(), "shaders/spv/shadow_vert.hlsl.spv", "shaders/spv/shadow_frag.hlsl.spv", shadowPass->getShadowMapImageInfo() );
-	shadowRenderSystem->setupDescriptorSet(*globalPool);
-#endif
-
-	basePass = std::make_unique<BasePass>( shDevice, WIDTH, HEIGHT );
-	lightPass = std::make_unique<LightingPass>(shDevice, WIDTH, HEIGHT, shRenderer.getFormat());
-
-	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout() };
-
-	//SimpleRenderSystem simpleRenderSystem{
-	//	shDevice,
-	//	shRenderer.getSwapChainRenderPass(),
-	//	"shaders/spv/simple_shader.vert.spv", "shaders/spv/simple_shader.frag.spv", };
-
-	//simpleRenderSystem.createPipelineLayout(setlayouts);
-	//simpleRenderSystem.createPipeline(shRenderer.getSwapChainRenderPass());
-
-	std::string vs_shader = "shaders/spv/gbuffer_vert.hlsl.spv";
-	std::string ps_shader = "shaders/spv/gbuffer_frag.hlsl.spv";
-	uint32_t attachmentCount = 3;
-	ShadowRenderSystem* shadowRenderSystemPtr = nullptr;
-
-#ifndef CALC_POSITION
-	attachmentCount = 4;
-#endif
-
-#ifndef DEFERRENDERING
-	vs_shader = "shaders/spv/pbr_vert.hlsl.spv";
-	ps_shader = "shaders/spv/pbr_frag.hlsl.spv";
-	shadowRenderSystemPtr = &shadowRenderSystem;
-	attachmentCount = 1;
-#endif
-
-#ifdef CPU_SKIN
-	vs_shader = "shaders/spv/gbuffer_skin.vert.spv";
-#elif defined CPU_ANIM
-	vs_shader = "shaders/spv/gbuffer_anim.vert.spv";
-#endif
-
-	baseRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, basePass->getRenderPass(), setlayouts, vs_shader, ps_shader, shadowRenderSystemPtr, attachmentCount);
-
-	auto lightingSetLayout0 =
-		ShDescriptorSetLayout::Builder(shDevice)
-		.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.addBinding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.build();
-
-	auto lightingSetLayout1 =
-		ShDescriptorSetLayout::Builder(shDevice)
-		.addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.addBinding(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.addBinding(4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-#ifndef  CALC_POSITION
-		.addBinding(5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-#endif // ! CALC_POSITION
-		.build();
-
-	std::vector<std::unique_ptr<ShBuffer>> cameraBuffers(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
-	for (int i = 0; i < cameraBuffers.size(); i++)
-	{
-		cameraBuffers[i] = std::make_unique<ShBuffer>(
-			shDevice,
-			sizeof(CameraExtentUBO),
-			1,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-		cameraBuffers[i]->map();
-	}
-
-#ifdef SHADOW
-	auto& shadowBuffer = shadowRenderSystem->getBuffers();
-#endif
-
-	for (int i = 0; i < lightDescriptorSets.size(); i++)
-	{
-		auto cameraBufferInfo = cameraBuffers[i]->descriptorInfo();
-		auto glboalBufferInfo = uboBuffers[i]->descriptorInfo();
-#ifdef SHADOW
-		auto shadowBufferInfo = shadowBuffer[i]->descriptorInfo();
-#endif
-		ShDescriptorWriter(*lightingSetLayout0, *globalPool)
-			.writeBuffer(0, &glboalBufferInfo)
-			.writeBuffer(1, &cameraBufferInfo)
-#ifdef SHADOW
-			.writeBuffer(2, &shadowBufferInfo)
-#endif
-			.build(lightDescriptorSets[i]);
-	}
-
-	VkDescriptorImageInfo colorImageInfo = basePass->GetAlbedo();
-	VkDescriptorImageInfo normalImageInfo = basePass->GetNormal();
-	VkDescriptorImageInfo emissiveImageInfo = basePass->GetEmissive();
-	VkDescriptorImageInfo depthImageInfo = basePass->GetDepth();
-
-	uint32_t positionindex = 4;
-#ifdef SHADOW
-	positionindex = 5;
-	VkDescriptorImageInfo shadowImageInfo = shadowPass->getShadowMapImageInfo();
-#endif
-
-	VkDescriptorImageInfo psotionImageInfo = basePass->GetPosition();
-	for (int i = 0; i < imageDescriptorSets.size(); i++)
-	{
-		
-		ShDescriptorWriter(*lightingSetLayout1, *globalPool)
-			.writeImage(0, &colorImageInfo)
-			.writeImage(1, &normalImageInfo)
-			.writeImage(2, &emissiveImageInfo)
-			.writeImage(3, &depthImageInfo)
-#ifdef SHADOW
-			.writeImage(4, &shadowImageInfo)
-#endif
-
-#ifndef  CALC_POSITION
-			.writeImage(positionindex, &psotionImageInfo)
-#endif // ! CALC_POSITION
-			.build(imageDescriptorSets[i]);
-	}
-
-	std::vector<VkDescriptorSetLayout> lightSetLayouts { lightingSetLayout0->getDescriptorSetLayout(), lightingSetLayout1->getDescriptorSetLayout()};
-	lightingRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, lightPass->getRenderPass(), lightSetLayouts,  "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv");
-
-	pointLightSystem = std::make_unique<PointLightSystem>(
-		shDevice,
-		shRenderer.getSwapChainRenderPass(),
-		globalSetLayout->getDescriptorSetLayout());
-
-	auto blitSetLayout =
-		ShDescriptorSetLayout::Builder(shDevice)
-		.addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.build();
-
-	std::vector<VkDescriptorSetLayout> blitSetLayouts{ blitSetLayout->getDescriptorSetLayout()};
-	blitRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, shRenderer.getSwapChainRenderPass(), blitSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/blit_frag.hlsl.spv");
-
-
-#ifdef SUBPASS
-	VkFormat dformat = shDevice.findSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
-		VK_IMAGE_TILING_OPTIMAL,
-		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-
-	deferRenderingPass = std::make_unique<DeferRenderingPass>(shDevice, WIDTH, HEIGHT, shRenderer.getFormat(), dformat);
-	deferbaseRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), setlayouts, vs_shader, ps_shader, shadowRenderSystemPtr, attachmentCount, 0);
-	deferlightingRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), lightSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv", 1);
-	
-	transparentRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), setlayouts, vs_shader, ps_shader, shadowRenderSystemPtr, attachmentCount, 2);
-#endif
-
-	auto lightingColorImageInfo = lightPass->getColor();
-	for (int i = 0; i < imageDescriptorSets.size(); i++)
-	{
-		ShDescriptorWriter(*blitSetLayout, *globalPool)
-			.writeImage(0, &lightingColorImageInfo)
-			.build(blitDescriptorSets[i]);
-	}
+	initShadow();
+	initDeferRendering();
+	initSubpassDeferRendering();
+	initBlit();
 
 	Camera2 camera{};
 	camera.type = Camera2::CameraType::firstperson;
@@ -492,6 +345,17 @@ void ShAPP::buildCommandBuffer(uint32_t frameIndex, FrameInfo& frameInfo)
 	lightPass->endRenderPass(commandBuffer);
 #endif
 
+#ifdef SUBPASS
+	// base pass
+	deferRenderingPass->beginRenderPass(commandBuffer);
+	deferbaseRenderSystem->renderGameObjects(frameInfo, commandBuffer);
+	deferRenderingPass->nextSubPass(commandBuffer);
+	deferlightingRenderSystem->renderGameObjects(frameInfo, { lightDescriptorSets[frameIndex], imageDescriptorSets[frameIndex] }, commandBuffer);
+	deferRenderingPass->nextSubPass(commandBuffer);
+	transparentRenderSystem->renderGameObjects(frameInfo, commandBuffer);
+	deferRenderingPass->endRenderPass(commandBuffer);
+#endif
+
 	// render
 	shRenderer.beginSwapChainRenderPass(commandBuffer);
 
@@ -499,8 +363,6 @@ void ShAPP::buildCommandBuffer(uint32_t frameIndex, FrameInfo& frameInfo)
 	//simpleRenderSystem.renderGameObjects(frameInfo);
 #ifdef DEFERRENDERING
 	blitRenderSystem->renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] }, commandBuffer);
-#else
-	gltfRenderSystem.renderGameObjects(frameInfo);
 #endif
 
 	pointLightSystem->render(frameInfo, commandBuffer);
@@ -511,7 +373,273 @@ void ShAPP::buildCommandBuffer(uint32_t frameIndex, FrameInfo& frameInfo)
 	shRenderer.endCommandBuffer();
 }
 
-const std::string MODEL_PATH = "Assets/models/buster_drone/busterDrone.gltf";
+void ShAPP::initShadow()
+{
+#ifdef SHADOW
+	shadowPass = std::make_unique<ShadowPass>(shDevice, ShadowResolution, ShadowResolution);
+	shadowRenderSystem = std::make_unique <ShadowRenderSystem>(shDevice, shadowPass->getRenderPass(), "shaders/spv/shadow_vert.hlsl.spv", "shaders/spv/shadow_frag.hlsl.spv", shadowPass->getShadowMapImageInfo());
+	shadowRenderSystem->setupDescriptorSet(*globalPool);
+#endif
+}
+
+void ShAPP::initDeferRendering()
+{
+#ifdef DEFERRENDERING
+
+	basePass = std::make_unique<BasePass>(shDevice, WIDTH, HEIGHT);
+	lightPass = std::make_unique<LightingPass>(shDevice, WIDTH, HEIGHT, shRenderer.getFormat());
+
+	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout() };
+
+	std::string vs_shader = "shaders/spv/gbuffer_vert.hlsl.spv";
+	std::string ps_shader = "shaders/spv/gbuffer_frag.hlsl.spv";
+	uint32_t attachmentCount = 3;
+	ShadowRenderSystem* shadowRenderSystemPtr = nullptr;
+
+#ifndef CALC_POSITION
+	attachmentCount = 4;
+#endif
+
+#ifdef CPU_SKIN
+	vs_shader = "shaders/spv/gbuffer_skin.vert.spv";
+#elif defined CPU_ANIM
+	vs_shader = "shaders/spv/gbuffer_anim.vert.spv";
+#endif
+
+	baseRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, basePass->getRenderPass(), setlayouts, vs_shader, ps_shader, shadowRenderSystemPtr, attachmentCount);
+
+	auto lightingSetLayout0 =
+		ShDescriptorSetLayout::Builder(shDevice)
+		.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.build();
+
+	auto lightingSetLayout1 =
+		ShDescriptorSetLayout::Builder(shDevice)
+		.addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+#ifndef  CALC_POSITION
+		.addBinding(5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+#endif // ! CALC_POSITION
+		.build();
+
+#ifdef SHADOW
+	auto& shadowBuffer = shadowRenderSystem->getBuffers();
+#endif
+
+	for (int i = 0; i < lightDescriptorSets.size(); i++)
+	{
+		auto cameraBufferInfo = cameraBuffers[i]->descriptorInfo();
+		auto glboalBufferInfo = uboBuffers[i]->descriptorInfo();
+#ifdef SHADOW
+		auto shadowBufferInfo = shadowBuffer[i]->descriptorInfo();
+#endif
+		ShDescriptorWriter(*lightingSetLayout0, *globalPool)
+			.writeBuffer(0, &glboalBufferInfo)
+			.writeBuffer(1, &cameraBufferInfo)
+#ifdef SHADOW
+			.writeBuffer(2, &shadowBufferInfo)
+#endif
+			.build(lightDescriptorSets[i]);
+	}
+
+	VkDescriptorImageInfo colorImageInfo = basePass->GetAlbedo();
+	VkDescriptorImageInfo normalImageInfo = basePass->GetNormal();
+	VkDescriptorImageInfo emissiveImageInfo = basePass->GetEmissive();
+	VkDescriptorImageInfo depthImageInfo = basePass->GetDepth();
+
+	uint32_t positionindex = 4;
+#ifdef SHADOW
+	positionindex = 5;
+	VkDescriptorImageInfo shadowImageInfo = shadowPass->getShadowMapImageInfo();
+#endif
+
+	VkDescriptorImageInfo psotionImageInfo = basePass->GetPosition();
+	for (int i = 0; i < imageDescriptorSets.size(); i++)
+	{
+
+		ShDescriptorWriter(*lightingSetLayout1, *globalPool)
+			.writeImage(0, &colorImageInfo)
+			.writeImage(1, &normalImageInfo)
+			.writeImage(2, &emissiveImageInfo)
+			.writeImage(3, &depthImageInfo)
+#ifdef SHADOW
+			.writeImage(4, &shadowImageInfo)
+#endif
+
+#ifndef  CALC_POSITION
+			.writeImage(positionindex, &psotionImageInfo)
+#endif // ! CALC_POSITION
+			.build(imageDescriptorSets[i]);
+	}
+
+	std::vector<VkDescriptorSetLayout> lightSetLayouts{ lightingSetLayout0->getDescriptorSetLayout(), lightingSetLayout1->getDescriptorSetLayout() };
+	lightingRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, lightPass->getRenderPass(), lightSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv");
+
+#endif
+}
+
+void ShAPP::initSubpassDeferRendering()
+{
+#ifdef SUBPASS
+
+	VkFormat dformat = shDevice.findSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+
+	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout() };
+
+	std::string vs_shader = "shaders/spv/gbuffer_vert.hlsl.spv";
+	std::string ps_shader = "shaders/spv/gbuffer_frag.hlsl.spv";
+	uint32_t attachmentCount = 3;
+	ShadowRenderSystem* shadowRenderSystemPtr = nullptr;
+
+#ifndef CALC_POSITION
+	attachmentCount = 4;
+#endif
+
+#ifdef CPU_SKIN
+	vs_shader = "shaders/spv/gbuffer_skin.vert.spv";
+#elif defined CPU_ANIM
+	vs_shader = "shaders/spv/gbuffer_anim.vert.spv";
+#endif
+
+#ifdef SHADOW
+	auto& shadowBuffer = shadowRenderSystem->getBuffers();
+#endif
+
+	uint32_t binding = 0;
+	auto lightingSetLayout0 =
+		ShDescriptorSetLayout::Builder(shDevice)
+		.addBinding(binding++, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(binding++, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+#ifdef SHADOW
+		.addBinding(binding++, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+#endif
+		.build();
+
+	binding = 0;
+	auto lightingSetLayout1 =
+		ShDescriptorSetLayout::Builder(shDevice)
+		.addBinding(binding++, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(binding++, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(binding++, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT)
+#ifndef CALC_POSITION
+		.addBinding(binding++, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT)
+#endif
+		.addBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.build();
+
+	for (int i = 0; i < lightDescriptorSets.size(); i++)
+	{
+		auto cameraBufferInfo = cameraBuffers[i]->descriptorInfo();
+		auto glboalBufferInfo = uboBuffers[i]->descriptorInfo();
+#ifdef SHADOW
+		auto shadowBufferInfo = shadowBuffer[i]->descriptorInfo();
+#endif
+
+		ShDescriptorWriter(*lightingSetLayout0, *globalPool)
+			.writeBuffer(0, &glboalBufferInfo)
+			.writeBuffer(1, &cameraBufferInfo)
+#ifdef SHADOW
+			.writeBuffer(2, &shadowBufferInfo)
+#endif
+			.build(lightDescriptorSets[i]);
+	}
+
+	VkDescriptorImageInfo albedoImageInfo = deferRenderingPass->GetAlbedo();
+	VkDescriptorImageInfo normalImageInfo = deferRenderingPass->GetNormal();
+	VkDescriptorImageInfo emissiveImageInfo = deferRenderingPass->GetEmissive();
+
+	binding = 0;
+#ifdef SHADOW
+	VkDescriptorImageInfo shadowImageInfo = shadowPass->getShadowMapImageInfo();
+#endif
+
+	VkDescriptorImageInfo psotionImageInfo = basePass->GetPosition();
+	for (int i = 0; i < imageDescriptorSets.size(); i++)
+	{
+
+		ShDescriptorWriter(*lightingSetLayout1, *globalPool)
+			.writeImage(binding++, &albedoImageInfo)
+			.writeImage(binding++, &normalImageInfo)
+			.writeImage(binding++, &emissiveImageInfo)
+#ifdef SHADOW
+			.writeImage(binding++, &shadowImageInfo)
+#endif
+#ifndef  CALC_POSITION
+			.writeImage(binding, &psotionImageInfo)
+#endif // ! CALC_POSITION
+			.build(imageDescriptorSets[i]);
+	}
+
+	auto transparentSetLayout = ShDescriptorSetLayout::Builder(shDevice)
+		.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+#ifndef CALC_POSITION
+		.addBinding(2, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+#endif
+		.build();
+
+	std::vector<VkDescriptorSetLayout> lightSetLayouts{ lightingSetLayout0->getDescriptorSetLayout(), lightingSetLayout1->getDescriptorSetLayout() };
+	std::vector<VkDescriptorSetLayout> transparentSetLayouts{ transparentSetLayout->getDescriptorSetLayout()};
+	deferRenderingPass = std::make_unique<DeferRenderingPass>(shDevice, WIDTH, HEIGHT, shRenderer.getFormat(), dformat);
+	deferbaseRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), setlayouts, vs_shader, ps_shader, shadowRenderSystemPtr, attachmentCount, 0);
+	deferlightingRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), lightSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv", 1);
+	transparentRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), transparentSetLayouts, "shaders/spv/transparent_vert.hlsl.spv", "shaders/spv/transparent_frag.hlsl.spv", shadowRenderSystemPtr, 1, 2);
+
+#endif
+}
+
+void ShAPP::initForwardRendering()
+{
+}
+
+void ShAPP::initBlit()
+{
+	auto blitSetLayout =
+		ShDescriptorSetLayout::Builder(shDevice)
+		.addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.build();
+
+	std::vector<VkDescriptorSetLayout> blitSetLayouts{ blitSetLayout->getDescriptorSetLayout() };
+	blitRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, shRenderer.getSwapChainRenderPass(), blitSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/blit_frag.hlsl.spv");
+#ifdef DEFERRENDERING
+	auto lightingColorImageInfo = lightPass->getColor();
+#endif // DEFERRENDERING
+
+#ifdef SUBPASS
+	auto lightingColorImageInfo = deferRenderingPass->GetColor();
+#endif // SUBPASS
+
+	for (int i = 0; i < imageDescriptorSets.size(); i++)
+	{
+		ShDescriptorWriter(*blitSetLayout, *globalPool)
+			.writeImage(0, &lightingColorImageInfo)
+			.build(blitDescriptorSets[i]);
+	}
+}
+
+void ShAPP::initLight()
+{
+	pointLightSystem = std::make_unique<PointLightSystem>(
+		shDevice,
+		shRenderer.getSwapChainRenderPass(),
+		globalSetLayout->getDescriptorSetLayout());
+}
+#ifdef SUBPASS
+const std::string MODEL_PATH = "Assets/models/samplebuilding.gltf";
+const std::string TRANSPARENT_PATH = "Assets/models/samplebuilding_glass.gltf";
+const std::string TRANSPARENT_TEXTURE_PATH = "Assets/textures/colored_glass_rgba.ktx";
+#endif // SUBPASS
+
+
+//const std::string MODEL_PATH = "Assets/models/buster_drone/busterDrone.gltf";
+
 //const std::string MODEL_PATH = "models/sponza/sponza.gltf";
 //const std::string MODEL_PATH = "models/cerberus/cerberus.gltf";
 
@@ -539,18 +667,29 @@ void ShAPP::loadGameObjects()
 	//floor.transform.scale = { 3.f, 1.f, 3.f };
 	//gameObjects.emplace(floor.getId(), std::move(floor));
 
-	//const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::FlipY;
+	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::FlipY;
 	//const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices;
-	const uint32_t glTFLoadingFlags = 0;
+	//const uint32_t glTFLoadingFlags = 0;
 	std::shared_ptr<Model> gltfModel = std::make_shared<Model>();
 	gltfModel->loadFromFile(MODEL_PATH, &shDevice, shDevice.graphicsQueue(), glTFLoadingFlags);
-	gltfModel->updateAnimation(0, 0.0f);
 
 	auto gltfgo = ShGameObject::createGameObject();
 	gltfgo.gltfmodel = gltfModel;
 	gltfgo.transform.translation = { 0.f, -0.5f, 0.f };
 	gltfgo.transform.scale = { 1.f, 1.f, 1.f };
 	gameObjects.emplace(gltfgo.getId(), std::move(gltfgo));
+
+	std::shared_ptr<Model> gltfTransparentModel = std::make_shared<Model>();
+	gltfModel->loadFromFile(TRANSPARENT_PATH, &shDevice, shDevice.graphicsQueue(), glTFLoadingFlags);
+
+	auto gltftgo = ShGameObject::createGameObject();
+	gltftgo.gltfmodel = gltfTransparentModel;
+	gltftgo.transform.translation = { 0.f, -0.5f, 0.f };
+	gltftgo.transform.scale = { 1.f, 1.f, 1.f };
+	gameObjects.emplace(gltftgo.getId(), std::move(gltftgo));
+
+	transparentTex = std::make_unique<ShTexture2D>(shDevice);
+	transparentTex->loadFromFile(TRANSPARENT_TEXTURE_PATH, VK_FORMAT_R8G8B8A8_UNORM);
 
 	std::vector<glm::vec3> lightColors{
 		{1.f, 1.f, 1.f},

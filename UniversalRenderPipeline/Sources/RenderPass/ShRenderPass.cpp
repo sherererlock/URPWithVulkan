@@ -88,6 +88,11 @@ void ShRenderPass::endRenderPass(VkCommandBuffer commandBuffer)
     vkCmdEndRenderPass(commandBuffer);
 }
 
+void ShRenderPass::nextSubPass(VkCommandBuffer commandBuffer)
+{
+    vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
+}
+
 void ShRenderPass::createAttachment(FrameBufferAttachment* attachment, VkFormat format, VkImageUsageFlags usage, VkImageLayout imageLayout)
 {
     attachment->format = format;

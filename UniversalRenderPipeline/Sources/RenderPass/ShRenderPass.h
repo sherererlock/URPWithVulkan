@@ -57,5 +57,7 @@ public:
 	void beginRenderPass(VkCommandBuffer commandBuffer);
 	void endRenderPass(VkCommandBuffer commandBuffer);
 
+	void nextSubPass(VkCommandBuffer commandBuffer);
+
 };
 

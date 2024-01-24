@@ -58,20 +58,20 @@ cbuffer shadowUbo : register(b2)
 #endif
 
 #ifdef SUBPASS
-
-[[vk::input_attachment_index(2)]][[vk::binding(2)]] SubpassInput inputAlbedo;
-[[vk::input_attachment_index(1)]][[vk::binding(1)]] SubpassInput inputNormal;
-[[vk::input_attachment_index(1)]][[vk::binding(1)]] SubpassInput inputEmissive;
+#define TN t3
+#define SN s3
+[[vk::input_attachment_index(0)]][[vk::binding(1,0)]] SubpassInput inputAlbedo;
+[[vk::input_attachment_index(1)]][[vk::binding(1,1)]] SubpassInput inputNormal;
+[[vk::input_attachment_index(2)]][[vk::binding(1,2)]] SubpassInput inputEmissive;
 #ifndef CALC_POSITOIN
-[[vk::input_attachment_index(0)]][[vk::binding(0)]] SubpassInput inputPosition;
+#define TN t4
+#define SN s4
+[[vk::input_attachment_index(3)]][[vk::binding(1,3)]] SubpassInput inputPosition;
 #endif
 
 #ifdef SHADOW 
-Texture2D textureShadow : register(t0, space1);
-SamplerState samplerShadow : register(s0, space1);
-#define TN t5
-#else
-#define TN t4
+Texture2D textureShadow : register(TN, space1);
+SamplerState samplerShadow : register(SN, space1);
 #endif
 
 float4 getBuffer1(float2 uv)

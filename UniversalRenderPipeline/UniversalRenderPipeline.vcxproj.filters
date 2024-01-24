@@ -135,9 +135,6 @@
     <ClCompile Include="Sources\RenderPass\DeferRenderingPass.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Sources\RenderSystem\DeferRendSystem.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\ShSwapchain.h">
@@ -219,9 +216,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Sources\RenderPass\DeferRenderingPass.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Sources\RenderSystem\DeferRendSystem.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

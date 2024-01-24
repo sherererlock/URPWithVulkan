@@ -24,5 +24,12 @@ public:
     DeferRenderingPass(ShDevice& device, uint32_t w, uint32_t h, VkFormat format, VkFormat dformat);
 
     virtual void createRenderPass() override;
+
+    VkDescriptorImageInfo GetColor() const { return color.descriptor(); }
+    VkDescriptorImageInfo GetAlbedo() const { return albedo.descriptor(); }
+    VkDescriptorImageInfo GetNormal() const { return normal.descriptor(); }
+    VkDescriptorImageInfo GetEmissive() const { return emissive.descriptor(); }
+    VkDescriptorImageInfo GetPosition() const { return position.descriptor(); }
+    VkDescriptorImageInfo GetDepth() const { return depth.descriptor(); }
 };
 

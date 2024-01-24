@@ -35,9 +35,10 @@ cbuffer ubo : register(b0)
     GlobalUBO ubo;
 }
 
-[[vk::input_attachment_index(0)]][[vk::binding(1)]] SubpassInput samplerPositionDepth;
-Texture2D textureTexture : register(t2);
-SamplerState samplerTexture : register(s2);
+Texture2D textureTexture : register(t1);
+SamplerState samplerTexture : register(s1);
+
+[[vk::input_attachment_index(0)]][[vk::binding(2)]] SubpassInput samplerPositionDepth;
 
 float linearDepth(float depth)
 {

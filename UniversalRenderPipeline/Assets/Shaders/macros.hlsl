@@ -1,6 +1,6 @@
 #pragma once
 
-#define DEFERRENDERING
+//#define DEFERRENDERING
 
 #ifndef DEFERRENDERING
 #define SHADOW

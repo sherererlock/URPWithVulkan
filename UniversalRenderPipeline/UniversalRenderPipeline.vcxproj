@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Sources\RenderSystem\DeferRendSystem.cpp" />
     <ClCompile Include="Sources\RenderPass\DeferRenderingPass.cpp" />
     <ClCompile Include="include\imgui\imgui.cpp" />
     <ClCompile Include="include\imgui\imgui_demo.cpp" />
@@ -62,7 +61,6 @@
     <ClCompile Include="Sources\VulkanglTFModel.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Sources\RenderSystem\DeferRendSystem.h" />
     <ClInclude Include="Sources\RenderPass\DeferRenderingPass.h" />
     <ClInclude Include="Sources\RenderSystem\BlitRenderSystem.h" />
     <ClInclude Include="Sources\RenderPass\BlitPass.h" />

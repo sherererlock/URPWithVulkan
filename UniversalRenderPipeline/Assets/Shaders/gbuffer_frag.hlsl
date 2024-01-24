@@ -89,6 +89,12 @@ float3 calculateNormal(VSOutput input)
     return normalize(mul(TBN, tangentNormal));
 }
 
+float linearDepth(float depth, float znear, float zfar)
+{
+    float z = depth * 2.0f - 1.0f;
+    return (2.0f * znear * zfar) / (zfar + znear - z * (zfar - znear));
+}
+
 FSOutput main(VSOutput input) : SV_TARGET
 {
     FSOutput output;
@@ -109,7 +115,8 @@ FSOutput main(VSOutput input) : SV_TARGET
     //output.normal = float4(normal, metallic);
     output.emmisive = float4(emmisive, 1.0f);
 #ifndef CALC_POSITOIN 
-    output.position = float4(input.Position, 1.0f);
+    float ldepth = linearDepth(input.Pos.z, ubo.camereInfo.x, ubo.camereInfo.y);
+    output.position = float4(input.Position, ldepth);
 #endif
     
     return output;
