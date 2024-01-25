@@ -491,8 +491,6 @@ void ShAPP::initSubpassDeferRendering()
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
-	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout() };
-
 	std::string vs_shader = "shaders/spv/gbuffer_vert.hlsl.spv";
 	std::string ps_shader = "shaders/spv/gbuffer_frag.hlsl.spv";
 	uint32_t attachmentCount = 4;
@@ -535,8 +533,8 @@ void ShAPP::initSubpassDeferRendering()
 
 	for (int i = 0; i < lightDescriptorSets.size(); i++)
 	{
-		auto cameraBufferInfo = cameraBuffers[i]->descriptorInfo();
 		auto glboalBufferInfo = uboBuffers[i]->descriptorInfo();
+		auto cameraBufferInfo = cameraBuffers[i]->descriptorInfo();
 #ifdef SHADOW
 		auto shadowBufferInfo = shadowBuffer[i]->descriptorInfo();
 #endif
@@ -553,25 +551,26 @@ void ShAPP::initSubpassDeferRendering()
 	VkDescriptorImageInfo albedoImageInfo = deferRenderingPass->GetAlbedo();
 	VkDescriptorImageInfo normalImageInfo = deferRenderingPass->GetNormal();
 	VkDescriptorImageInfo emissiveImageInfo = deferRenderingPass->GetEmissive();
-
+#ifndef  CALC_POSITION
+	VkDescriptorImageInfo positionImageInfo = deferRenderingPass->GetPosition();
+#endif 
 	binding = 0;
 #ifdef SHADOW
 	VkDescriptorImageInfo shadowImageInfo = shadowPass->getShadowMapImageInfo();
 #endif
 
-	VkDescriptorImageInfo psotionImageInfo = basePass->GetPosition();
 	for (int i = 0; i < imageDescriptorSets.size(); i++)
 	{
 		ShDescriptorWriter(*lightingSetLayout1, *globalPool)
 			.writeImage(binding++, &albedoImageInfo)
 			.writeImage(binding++, &normalImageInfo)
 			.writeImage(binding++, &emissiveImageInfo)
-#ifdef SHADOW
-			.writeImage(binding++, &shadowImageInfo)
-#endif
 #ifndef  CALC_POSITION
-			.writeImage(binding, &psotionImageInfo)
+			.writeImage(binding++, &positionImageInfo)
 #endif // ! CALC_POSITION
+#ifdef SHADOW
+			.writeImage(binding, &shadowImageInfo)
+#endif
 			.build(imageDescriptorSets[i]);
 	}
 
@@ -583,9 +582,6 @@ void ShAPP::initSubpassDeferRendering()
 #endif
 		.build();
 
-	std::vector<VkDescriptorSetLayout> lightSetLayouts{ lightingSetLayout0->getDescriptorSetLayout(), lightingSetLayout1->getDescriptorSetLayout() };
-	std::vector<VkDescriptorSetLayout> transparentSetLayouts{ transparentSetLayout->getDescriptorSetLayout()};
-
 	binding = 0;
 	for (int i = 0; i < transparentDescriptorSets.size(); i++)
 	{
@@ -595,15 +591,20 @@ void ShAPP::initSubpassDeferRendering()
 			.writeBuffer(binding++, &glboalBufferInfo)
 			.writeImage(binding++, &imageInfo)
 #ifndef  CALC_POSITION
-			.writeImage(binding, &psotionImageInfo)
+			.writeImage(binding, &positionImageInfo)
 #endif // ! CALC_POSITION
 			.build(transparentDescriptorSets[i]);
 	}
 
+	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout() };
+	std::vector<VkDescriptorSetLayout> lightSetLayouts{ lightingSetLayout0->getDescriptorSetLayout(), lightingSetLayout1->getDescriptorSetLayout() };
+	std::vector<VkDescriptorSetLayout> transparentSetLayouts{ transparentSetLayout->getDescriptorSetLayout() };
+
 	deferRenderingPass = std::make_unique<DeferRenderingPass>(shDevice, WIDTH, HEIGHT, shRenderer.getFormat(), dformat);
+
 	deferbaseRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), setlayouts, vs_shader, ps_shader, nullptr, attachmentCount, 0);
 	deferlightingRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), lightSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv", 1);
-	transparentRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), transparentSetLayouts, "shaders/spv/transparent_vert.hlsl.spv", "shaders/spv/transparent_frag.hlsl.spv", shadowRenderSystemPtr, 1, 2);
+	transparentRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), transparentSetLayouts, "shaders/spv/transparent_vert.hlsl.spv", "shaders/spv/transparent_frag.hlsl.spv", nullptr, 1, 2);
 
 #endif
 }

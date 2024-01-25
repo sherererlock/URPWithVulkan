@@ -32,3 +32,4 @@
 | **binding3** |                     | **Poistion InputAttachment** |
 | **binding4** |                     | **Shadow Texture**           |
 
+## DeferRenderingPass
