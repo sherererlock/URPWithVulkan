@@ -25,9 +25,10 @@
 
 #include "macros.hlsl"
 
-#define MAX_SET_NUM 30
-#define MAX_UNIFORM_BUFFER_NUM 30
-#define MAX_SAMPLER_BUFFER_NUM 30
+#define MAX_SET_NUM 40
+#define MAX_UNIFORM_BUFFER_NUM 40
+#define MAX_SAMPLER_BUFFER_NUM 40
+#define MAX_INPUT_ATTACHMENT_BUFFER_NUM 40
 
 struct CameraExtentUBO
 {
@@ -42,6 +43,7 @@ ShAPP::ShAPP() {
 		.setMaxSets(MAX_SET_NUM)
 		.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_UNIFORM_BUFFER_NUM)
 		.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_SAMPLER_BUFFER_NUM)
+		.addPoolSize(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, MAX_SAMPLER_BUFFER_NUM)
 		.build();
 	loadGameObjects();
 
@@ -490,6 +492,7 @@ void ShAPP::initSubpassDeferRendering()
 	VkFormat dformat = shDevice.findSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	deferRenderingPass = std::make_unique<DeferRenderingPass>(shDevice, WIDTH, HEIGHT, shRenderer.getFormat(), dformat);
 
 	std::string vs_shader = "shaders/spv/gbuffer_vert.hlsl.spv";
 	std::string ps_shader = "shaders/spv/gbuffer_frag.hlsl.spv";
@@ -554,13 +557,14 @@ void ShAPP::initSubpassDeferRendering()
 #ifndef  CALC_POSITION
 	VkDescriptorImageInfo positionImageInfo = deferRenderingPass->GetPosition();
 #endif 
-	binding = 0;
+	
 #ifdef SHADOW
 	VkDescriptorImageInfo shadowImageInfo = shadowPass->getShadowMapImageInfo();
 #endif
 
 	for (int i = 0; i < imageDescriptorSets.size(); i++)
 	{
+		binding = 0;
 		ShDescriptorWriter(*lightingSetLayout1, *globalPool)
 			.writeImage(binding++, &albedoImageInfo)
 			.writeImage(binding++, &normalImageInfo)
@@ -578,13 +582,13 @@ void ShAPP::initSubpassDeferRendering()
 		.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
 		.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
 #ifndef CALC_POSITION
-		.addBinding(2, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+		.addBinding(2, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT)
 #endif
 		.build();
 
-	binding = 0;
 	for (int i = 0; i < transparentDescriptorSets.size(); i++)
 	{
+		binding = 0;
 		auto glboalBufferInfo = uboBuffers[i]->descriptorInfo();
 		auto imageInfo = transparentTex->descriptorImageInfo();
 		ShDescriptorWriter(*transparentSetLayout, *globalPool)
@@ -599,8 +603,6 @@ void ShAPP::initSubpassDeferRendering()
 	std::vector<VkDescriptorSetLayout> setlayouts{ globalSetLayout->getDescriptorSetLayout() };
 	std::vector<VkDescriptorSetLayout> lightSetLayouts{ lightingSetLayout0->getDescriptorSetLayout(), lightingSetLayout1->getDescriptorSetLayout() };
 	std::vector<VkDescriptorSetLayout> transparentSetLayouts{ transparentSetLayout->getDescriptorSetLayout() };
-
-	deferRenderingPass = std::make_unique<DeferRenderingPass>(shDevice, WIDTH, HEIGHT, shRenderer.getFormat(), dformat);
 
 	deferbaseRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), setlayouts, vs_shader, ps_shader, nullptr, attachmentCount, 0);
 	deferlightingRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), lightSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv", 1);
@@ -694,7 +696,7 @@ void ShAPP::loadGameObjects()
 	gameObjects.emplace(gltfgo.getId(), std::move(gltfgo));
 
 	std::shared_ptr<Model> gltfTransparentModel = std::make_shared<Model>();
-	gltfModel->loadFromFile(TRANSPARENT_PATH, &shDevice, shDevice.graphicsQueue(), glTFLoadingFlags);
+	gltfTransparentModel->loadFromFile(TRANSPARENT_PATH, &shDevice, shDevice.graphicsQueue(), glTFLoadingFlags);
 
 	auto gltftgo = ShGameObject::createGameObject();
 	gltftgo.gltfmodel = gltfTransparentModel;

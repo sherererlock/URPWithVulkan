@@ -28,7 +28,7 @@ std::vector<VkAttachmentDescription> DeferRenderingPass::GetAttachmentDescriptio
 #ifdef CALC_POSITION
     std::vector<VkAttachmentDescription> attachments = { colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, depthAttachmentDes };
 #else
-    std::vector<VkAttachmentDescription> attachments = { colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, depthAttachmentDes };
+    std::vector<VkAttachmentDescription> attachments = { colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, colorAttachmentDes, depthAttachmentDes };
     attachments[4].format = VK_FORMAT_R16G16B16A16_SFLOAT;    
 #endif // CALC_POSITION
 
@@ -160,11 +160,11 @@ std::vector<VkClearValue> DeferRenderingPass::GetClearValues() const
 DeferRenderingPass::DeferRenderingPass(ShDevice& device, uint32_t w, uint32_t h, VkFormat cformat, VkFormat dformat)
     : ShRenderPass(device, w, h)
 {
-    createAttachment(&color, cformat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    createAttachment(&albedo, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    createAttachment(&normal, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    createAttachment(&emissive, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    createAttachment(&position, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    createAttachment(&color, cformat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    createAttachment(&albedo, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    createAttachment(&normal, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    createAttachment(&emissive, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    createAttachment(&position, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     createAttachment(&depth, dformat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL);
 
     createRenderPass();
@@ -187,6 +187,15 @@ void DeferRenderingPass::createRenderPass()
     std::vector<VkAttachmentReference> inputRefs = { attachmentRefs[1] , attachmentRefs[2], attachmentRefs[3], attachmentRefs[4] };
     std::vector<VkAttachmentReference> inputRefs1 = { attachmentRefs[4] };
 #endif
+    for (int i = 0; i < inputRefs.size(); i++)
+    {
+        inputRefs[i].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    }
+
+    for (int i = 0; i < inputRefs1.size(); i++)
+    {
+        inputRefs1[i].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    }
 
     VkSubpassDescription subpassDes1{};
     subpassDes1.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
