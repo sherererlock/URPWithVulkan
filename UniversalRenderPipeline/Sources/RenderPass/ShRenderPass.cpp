@@ -129,5 +129,6 @@ void ShRenderPass::createAttachment(FrameBufferAttachment* attachment, VkFormat 
 
     shDevice.createImageWithInfo(imageInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, attachment->image, attachment->mem);
     shDevice.createImageView(attachment->view, attachment->image, format, aspectMask, 1);
-    shDevice.createSampler(attachment->sampler, VK_FILTER_NEAREST, VK_FILTER_NEAREST, 1, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+    if(usage & VK_IMAGE_USAGE_SAMPLED_BIT)
+        shDevice.createSampler(attachment->sampler, VK_FILTER_NEAREST, VK_FILTER_NEAREST, 1, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 }
