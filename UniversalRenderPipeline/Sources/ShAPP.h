@@ -42,10 +42,11 @@ private:
 	std::unique_ptr<PointLightSystem> pointLightSystem;
 	std::unique_ptr<BlitRenderSystem> blitRenderSystem;
 
-	std::vector<VkDescriptorSet> blitDescriptorSets{ ShSwapchain::MAX_FRAMES_IN_FLIGHT };
-	std::vector<VkDescriptorSet> lightDescriptorSets{ ShSwapchain::MAX_FRAMES_IN_FLIGHT };
-	std::vector<VkDescriptorSet> imageDescriptorSets{ ShSwapchain::MAX_FRAMES_IN_FLIGHT };
-	std::vector<VkDescriptorSet> transparentDescriptorSets{ ShSwapchain::MAX_FRAMES_IN_FLIGHT };
+	std::array<VkDescriptorSet, ShSwapchain::MAX_FRAMES_IN_FLIGHT> globalDescriptorSets;
+	std::array<VkDescriptorSet, ShSwapchain::MAX_FRAMES_IN_FLIGHT> blitDescriptorSets;
+	std::array<VkDescriptorSet, ShSwapchain::MAX_FRAMES_IN_FLIGHT> lightDescriptorSets;
+	std::array<VkDescriptorSet, ShSwapchain::MAX_FRAMES_IN_FLIGHT> imageDescriptorSets;
+	std::array<VkDescriptorSet, ShSwapchain::MAX_FRAMES_IN_FLIGHT> transparentDescriptorSets;
 
 	std::unique_ptr<DeferRenderingPass> deferRenderingPass;
 	std::unique_ptr<GltfRenderSystem> deferbaseRenderSystem;

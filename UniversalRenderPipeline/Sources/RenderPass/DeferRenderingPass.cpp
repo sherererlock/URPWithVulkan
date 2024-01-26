@@ -92,7 +92,7 @@ std::vector<VkSubpassDependency> DeferRenderingPass::GetSubpassDependencies() co
     dependencies[4].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
     dependencies[4].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-    return { dependencies[0], dependencies[1] };
+    return { dependencies[0], dependencies[1], dependencies[2], dependencies[3], dependencies[4] };
 }
 
 std::vector<VkAttachmentReference> DeferRenderingPass::GetColorAttachmentRefs() const

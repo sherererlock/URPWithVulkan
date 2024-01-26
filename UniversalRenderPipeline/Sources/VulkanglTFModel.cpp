@@ -1142,10 +1142,19 @@ void vkglTF::Model::loadMaterials(tinygltf::Model &gltfModel)
 		if (mat.values.find("baseColorTexture") != mat.values.end()) {
 			material.baseColorTexture = getTexture(gltfModel.textures[mat.values["baseColorTexture"].TextureIndex()].source);
 		}
+		else
+		{
+			material.baseColorTexture = &emptyTexture;
+		}
 		// Metallic roughness workflow
 		if (mat.values.find("metallicRoughnessTexture") != mat.values.end()) {
 			material.metallicRoughnessTexture = getTexture(gltfModel.textures[mat.values["metallicRoughnessTexture"].TextureIndex()].source);
 		}
+		else
+		{
+			material.metallicRoughnessTexture = &emptyTexture;
+		}
+
 		if (mat.values.find("roughnessFactor") != mat.values.end()) {
 			material.roughnessFactor = static_cast<float>(mat.values["roughnessFactor"].Factor());
 		}
@@ -1632,7 +1641,7 @@ void vkglTF::Model::drawNode(Node *node, VkCommandBuffer commandBuffer, uint32_t
 				skip = (material.alphaMode != Material::ALPHAMODE_BLEND);
 			}
 			if (!skip) {
-				if (renderFlags & RenderFlags::BindImages) {
+				if ((renderFlags & RenderFlags::BindImages) && material.descriptorSet != nullptr) {
 					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, bindImageSet, 1, &material.descriptorSet, 0, nullptr);
 				}
 
@@ -1708,7 +1717,7 @@ void vkglTF::Model::getSceneDimensions()
 
 void vkglTF::Model::updateAnimation(uint32_t index, float time)
 {
-	if (index > static_cast<uint32_t>(animations.size()) - 1) {
+	if (index >= animations.size()) {
 		std::cout << "No animation with index " << index << std::endl;
 		return;
 	}

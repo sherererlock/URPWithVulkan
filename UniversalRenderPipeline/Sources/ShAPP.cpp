@@ -46,10 +46,6 @@ ShAPP::ShAPP() {
 		.addPoolSize(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, MAX_SAMPLER_BUFFER_NUM)
 		.build();
 	loadGameObjects();
-
-	blitDescriptorSets.resize(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
-	lightDescriptorSets.resize(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
-	imageDescriptorSets.resize(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
 }
 
 ShAPP::~ShAPP()
@@ -86,7 +82,6 @@ void ShAPP::run()
 		.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
 		.build();
 
-	std::vector<VkDescriptorSet> globalDescriptorSets(ShSwapchain::MAX_FRAMES_IN_FLIGHT);
 	for (int i = 0; i < globalDescriptorSets.size(); i++) {
 		auto bufferInfo = uboBuffers[i]->descriptorInfo();
 		ShDescriptorWriter(*globalSetLayout, *globalPool)
@@ -94,6 +89,7 @@ void ShAPP::run()
 			.build(globalDescriptorSets[i]);
 	}
 
+	initLight();
 	initShadow();
 	initDeferRendering();
 	initSubpassDeferRendering();
@@ -126,14 +122,14 @@ void ShAPP::run()
 		camera.update(frameTimer);
 		input.update(frameTimer);
 
-		for (auto& kv : gameObjects)
-		{
-			auto& obj = kv.second;
-			if (obj.gltfmodel == nullptr)
-				continue;
+		//for (auto& kv : gameObjects)
+		//{
+		//	auto& obj = kv.second;
+		//	if (obj.gltfmodel == nullptr)
+		//		continue;
 
-			obj.gltfmodel->updateAnimation(0, frameTimer);
-		}
+		//	obj.gltfmodel->updateAnimation(0, frameTimer);
+		//}
 
 		float aspect = shRenderer.getAspectRatio();
 
@@ -494,7 +490,8 @@ void ShAPP::initSubpassDeferRendering()
 		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 	deferRenderingPass = std::make_unique<DeferRenderingPass>(shDevice, WIDTH, HEIGHT, shRenderer.getFormat(), dformat);
 
-	std::string vs_shader = "shaders/spv/gbuffer_vert.hlsl.spv";
+	//std::string vs_shader = "shaders/spv/gbuffer_vert.hlsl.spv";
+	std::string vs_shader = "shaders/spv/gbuffer_anim.vert.spv";
 	std::string ps_shader = "shaders/spv/gbuffer_frag.hlsl.spv";
 	uint32_t attachmentCount = 4;
 
@@ -605,9 +602,10 @@ void ShAPP::initSubpassDeferRendering()
 	std::vector<VkDescriptorSetLayout> transparentSetLayouts{ transparentSetLayout->getDescriptorSetLayout() };
 
 	deferbaseRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), setlayouts, vs_shader, ps_shader, nullptr, attachmentCount, 0);
+	deferbaseRenderSystem->SetupSet(globalDescriptorSets);
 	deferlightingRenderSystem = std::make_unique<BlitRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), lightSetLayouts, "shaders/spv/quad_vert.hlsl.spv", "shaders/spv/Lighting_frag.hlsl.spv", 1);
 	transparentRenderSystem = std::make_unique<GltfRenderSystem>(shDevice, deferRenderingPass->getRenderPass(), transparentSetLayouts, "shaders/spv/transparent_vert.hlsl.spv", "shaders/spv/transparent_frag.hlsl.spv", nullptr, 1, 2);
-
+	transparentRenderSystem->SetupSet(transparentDescriptorSets);
 #endif
 }
 
