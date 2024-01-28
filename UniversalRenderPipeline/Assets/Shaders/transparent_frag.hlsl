@@ -1,6 +1,6 @@
 // Copyright 2020 Google LLC
 
-
+#include "common.hlsl"
 
 struct VSOutput
 {
@@ -9,7 +9,8 @@ struct VSOutput
     [[vk::location(1)]] float3 Normal : NORMAL0;
     [[vk::location(2)]] float2 UV : TEXCOORD0;
     [[vk::location(3)]] float3 Tangent : TEXCOORD1;
-    [[vk::location(4)]] float4 ShadowCoords : TEXCOORD2;
+    [[vk::location(4)]] float3 Color : COLOR0;
+    [[vk::location(5)]] float4 ShadowCoords : TEXCOORD2;
 };
 
 struct PointLight
@@ -40,20 +41,14 @@ SamplerState samplerTexture : register(s1);
 
 [[vk::input_attachment_index(0)]][[vk::binding(2)]] SubpassInput samplerPositionDepth;
 
-float linearDepth(float depth)
-{
-	float z = depth * 2.0f - 1.0f;
-    return (2.0f * ubo.camereInfo.x * ubo.camereInfo.y) / (ubo.camereInfo.y + ubo.camereInfo.x - z * (ubo.camereInfo.y - ubo.camereInfo.x));
-}
-
 float4 main (VSOutput input) : SV_TARGET
 {
 	// Sample depth from deferred depth buffer and discard if obscured
 	float depth = samplerPositionDepth.SubpassLoad().a;
-	if ((depth != 0.0) && (linearDepth(input.Pos.z) > depth))
+    if ((depth != 0.0) && (linearDepth(input.Pos.z, ubo.camereInfo.x, ubo.camereInfo.y) > depth))
 	{
-		clip(-1);
-	};
-
-	return textureTexture.Sample(samplerTexture, input.UV);
+        clip(-1);
+    };
+    
+    return textureTexture.Sample(samplerTexture, input.UV);
 }

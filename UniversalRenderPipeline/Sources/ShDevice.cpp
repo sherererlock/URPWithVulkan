@@ -5,6 +5,7 @@
 
 #include "ShDevice.h"
 #include "VulkanInitializers.hpp"
+#include "Debug.h"
 
 // local callback functions
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -454,6 +455,7 @@ ShDevice::ShDevice(ShWindow& window) : shWindow(window)
     pickPhysicalDevice();
     createLogicalDevice();
     createCommandPool();
+    debugutils::setup(instance);
 }
 
 ShDevice::~ShDevice()

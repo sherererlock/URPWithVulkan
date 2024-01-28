@@ -699,7 +699,7 @@ std::vector<VkVertexInputAttributeDescription> vkglTF::Vertex::getAttributeDescr
 #ifdef CPU_SKIN
 	std::vector<VertexComponent> components{vkglTF::VertexComponent::Position, vkglTF::VertexComponent::Normal, vkglTF::VertexComponent::UV, vkglTF::VertexComponent::Tangent, vkglTF::VertexComponent::Joint0, vkglTF::VertexComponent::Weight0 };
 #else
-	std::vector<VertexComponent> components{ vkglTF::VertexComponent::Position, vkglTF::VertexComponent::Normal, vkglTF::VertexComponent::UV, vkglTF::VertexComponent::Tangent };
+	std::vector<VertexComponent> components{ vkglTF::VertexComponent::Position, vkglTF::VertexComponent::Normal, vkglTF::VertexComponent::UV, vkglTF::VertexComponent::Tangent, vkglTF::VertexComponent::Color };
 #endif
 
 	Vertex::vertexInputAttributeDescriptions = Vertex::inputAttributeDescriptions(0, components);
@@ -739,7 +739,7 @@ void vkglTF::Model::createEmptyTexture(VkQueue transferQueue)
 
 	size_t bufferSize = emptyTexture.width * emptyTexture.height * 4;
 	unsigned char* buffer = new unsigned char[bufferSize];
-	memset(buffer, 0, bufferSize);
+	memset(buffer, 1, bufferSize);
 
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingMemory;

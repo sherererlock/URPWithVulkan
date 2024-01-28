@@ -56,6 +56,7 @@ public:
 	std::shared_ptr<ShModel> model{};
 	std::shared_ptr<Model> gltfmodel{};
 	std::unique_ptr<PointLightComponent> pointLight = nullptr;
+	bool isTransparent = false;
 
 private:
 	ShGameObject(id_t objId) : id{ objId } {}

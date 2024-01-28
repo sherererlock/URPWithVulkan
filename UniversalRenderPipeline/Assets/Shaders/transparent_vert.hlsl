@@ -6,6 +6,7 @@ struct VSInput
 [[vk::location(1)]] float3 Normal : NORMAL0;
 [[vk::location(2)]] float2 UV : TEXCOORD0;
 [[vk::location(3)]] float3 Tangent : TEXCOORD1;
+[[vk::location(4)]] float3 Color : COLOR0;
 };
 
 struct PointLight
@@ -38,7 +39,8 @@ struct VSOutput
     [[vk::location(1)]] float3 Normal : NORMAL0;
     [[vk::location(2)]] float2 UV : TEXCOORD0;
     [[vk::location(3)]] float3 Tangent : TEXCOORD1;
-    [[vk::location(4)]] float4 ShadowCoords : TEXCOORD2;
+    [[vk::location(4)]] float3 Color : COLOR0;
+    [[vk::location(5)]] float4 ShadowCoords : TEXCOORD2;
 };
 
 struct PushConsts
@@ -52,12 +54,15 @@ struct PushConsts
 VSOutput main (VSInput input)
 {
 	VSOutput output = (VSOutput)0;
-    output.WorldPos = mul(pushConsts.modelMatrix, float4(input.Pos, 1.0)).xyz;
-    output.Pos = mul(ubo.projection, mul(ubo.view, float4(output.WorldPos, 1.0)));
+    float4 position = mul(pushConsts.modelMatrix, float4(input.Pos, 1.0));
+    output.WorldPos = position.xyz;
+    output.Pos = mul(ubo.projection, mul(ubo.view, position));
     float3x3 mat = (float3x3) pushConsts.modelMatrix;
     output.Normal = normalize(mul(mat, normalize(input.Normal)));
     output.UV = input.UV;
     output.Tangent = normalize(mul(mat, normalize(input.Tangent.xyz)));
+    output.Color = input.Color;
+    output.ShadowCoords = float4(1.0, 1.0, 1.0, 1.0f);
     
 	return output;
 }

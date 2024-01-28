@@ -8,11 +8,13 @@ layout(location = 0) in vec3 Pos;
 layout(location = 1) in vec3 Normal;
 layout(location = 2) in vec2 UV;
 layout(location = 3) in vec3 Tangent;
+layout(location = 4) in vec3 Color;
 
 layout(location = 0) out vec3 oNormal;
 layout(location = 1) out vec2 oUV;
 layout(location = 2) out vec3 oTangent;
 layout(location = 3) out vec3 oPosition;
+layout(location = 4) out vec3 oColor;
 
 struct PointLight
 {
@@ -59,5 +61,6 @@ void main()
     oUV = UV;
     oNormal = normalize(mat * Normal);
     oTangent = normalize(mat * Tangent);
+    oColor = Color;
     gl_Position = ubo.projection * ubo.view * position;
 }

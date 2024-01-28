@@ -17,6 +17,8 @@ GltfRenderSystem::GltfRenderSystem(
 	ShDevice& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout>& setlayouts, std::string vertexShader, std::string fragmentShader, ShadowRenderSystem* rendersystem, uint32_t colorBlendAttachmentCount, uint32_t subpass)
 	: RenderSystem(device, renderPass, vertexShader, fragmentShader), shadowRenderSystem(rendersystem), colorBlendAttachmentCount(colorBlendAttachmentCount)
 {
+	bindimage = colorBlendAttachmentCount > 1;
+
 	createPipelineLayout(setlayouts);
 	createPipeline(renderPass, subpass);
 }
@@ -30,6 +32,14 @@ void GltfRenderSystem::createPipeline(VkRenderPass renderPass, uint32_t subpass)
 	pipelineConfig.renderPass = renderPass;
 	pipelineConfig.pipelineLayout = pipelineLayout;
 	pipelineConfig.subpass = subpass;
+	if (!bindimage)
+	{
+		pipelineConfig.depthStencilInfo.depthWriteEnable = VK_FALSE;
+		pipelineConfig.depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+		pipelineConfig.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
+		ShPipeline::enableAlphaBlending(pipelineConfig);
+	}
+
 	lvePipeline = std::make_unique<ShPipeline>(
 		lveDevice,
 		vertexShader,
@@ -40,7 +50,7 @@ void GltfRenderSystem::createPipeline(VkRenderPass renderPass, uint32_t subpass)
 void GltfRenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout>& setLayouts)
 {
 	std::vector<VkDescriptorSetLayout> layouts = setLayouts;
-	if (vkglTF::descriptorSetLayoutImage != VK_NULL_HANDLE)
+	if (vkglTF::descriptorSetLayoutImage != VK_NULL_HANDLE && bindimage)
 	{
 		layouts.push_back(vkglTF::descriptorSetLayoutImage);
 	}
@@ -97,6 +107,12 @@ void GltfRenderSystem::renderGameObjects(FrameInfo& frameInfo, VkCommandBuffer c
 	{
 		auto& obj = kv.second;
 		if (obj.gltfmodel == nullptr)
+			continue;
+
+		if(!bindimage && !obj.isTransparent)
+			continue;
+
+		if (bindimage && obj.isTransparent)
 			continue;
 
 		obj.transform.translation = glm::vec3(glm::vec4(obj.transform.translation, 1.f));

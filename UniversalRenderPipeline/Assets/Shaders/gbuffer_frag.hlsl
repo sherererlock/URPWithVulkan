@@ -8,6 +8,7 @@ struct VSOutput
     [[vk::location(1)]] float2 UV : TEXCOORD0;
     [[vk::location(2)]] float3 Tangent : TEXCOORD1;
     [[vk::location(3)]] float3 Position : TEXCOORD2;
+    [[vk::location(4)]] float3 Color : COLOR0;
 };
 
 #ifdef SUBPASS
@@ -99,14 +100,20 @@ FSOutput main(VSOutput input) : SV_TARGET
 {
     FSOutput output;
     
-    float3 albedo = textureColor.Sample(samplerColor, input.UV).rgb;
+    float3 albedo = textureColor.Sample(samplerColor, input.UV).rgb * input.Color;
     float3 emmisive = textureEmissive.Sample(samplerEmissive, input.UV).rgb;
     float3 normal = calculateNormal(input);
+
     float2 rm = textureRoughness.Sample(samplerRoughness, input.UV).gb;
     float roughness = rm.x;
     float metallic = rm.y;
     
 #ifdef SUBPASS 
+    albedo = input.Color;
+    roughness = 0.8f;
+    metallic = 0.2f;
+    emmisive = float3(0, 0, 0);
+    normal = normalize(input.Normal);
     output.color = float4(0, 0, 0, 1);
 #endif
     

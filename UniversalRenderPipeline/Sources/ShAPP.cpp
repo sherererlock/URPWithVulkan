@@ -15,15 +15,11 @@
 #include <glm/glm/gtc/constants.hpp>
 
 #include "ShAPP.h"
-
 #include "shbuffer.h"
 #include "camera.hpp"
-
-
 #include "InputController.h"
-
-
 #include "macros.hlsl"
+#include "Debug.h"
 
 #define MAX_SET_NUM 40
 #define MAX_UNIFORM_BUFFER_NUM 40
@@ -99,8 +95,10 @@ void ShAPP::run()
 	camera.type = Camera2::CameraType::firstperson;
 	camera.flipY = true;
 	camera.movementSpeed = 2.0f;
-	camera.setPosition(glm::vec3(0.443f, -0.163f, 2.433f));
-	camera.setRotation(glm::vec3(-20.0f, 173.0f, 0.0f));
+	camera.setPosition(glm::vec3(-3.f, 5.f, -4.f));
+	camera.setRotation(glm::vec3(-38.0f, -25.0f, 0.0f));
+	camera.setPosition(glm::vec3(-3.2f, 1.0f, 5.9f));
+	camera.setRotation(glm::vec3(0.5f, 210.05f, 0.0f));
 	camera.setPerspective(60.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 256.0f);
 
 	Input input(camera, *this);
@@ -325,32 +323,44 @@ void ShAPP::buildCommandBuffer(uint32_t frameIndex, FrameInfo& frameInfo)
 
 #ifdef  SHADOW
 	// shadow pass
+	debugutils::cmdBeginLabel(commandBuffer, "Shadow Pass Begin", glm::vec4(1, 1, 0, 1));
 	shadowRenderSystem->setupLight(pointLightGO, frameIndex);
 	shadowPass->beginRenderPass(commandBuffer);
 	shadowRenderSystem->renderGameObjects(frameInfo, commandBuffer);
 	shadowPass->endRenderPass(commandBuffer);
+	debugutils::cmdEndLabel(commandBuffer);
 #endif //  SHADOW
 
 #ifdef DEFERRENDERING
 	// base pass
+	debugutils::cmdBeginLabel(commandBuffer, "Base Pass Begin", glm::vec4(1, 1, 0, 1));
 	basePass->beginRenderPass(commandBuffer);
 	baseRenderSystem->renderGameObjects(frameInfo, commandBuffer);
 	basePass->endRenderPass(commandBuffer);
+	debugutils::cmdEndLabel(commandBuffer);
 
 	// lighting pass
+	debugutils::cmdBeginLabel(commandBuffer, "Lighting Pass Begin", glm::vec4(1, 1, 0, 1));
 	lightPass->beginRenderPass(commandBuffer);
 	lightingRenderSystem->renderGameObjects(frameInfo, { lightDescriptorSets[frameIndex], imageDescriptorSets[frameIndex] }, commandBuffer);
 	lightPass->endRenderPass(commandBuffer);
+	debugutils::cmdEndLabel(commandBuffer);
 #endif
 
 #ifdef SUBPASS
 	// base pass
+	debugutils::cmdBeginLabel(commandBuffer, "deferRendering subpass Begin", glm::vec4(1, 0, 0, 1));
 	deferRenderingPass->beginRenderPass(commandBuffer);
 	deferbaseRenderSystem->renderGameObjects(frameInfo, commandBuffer);
+	debugutils::cmdEndLabel(commandBuffer);
+	debugutils::cmdBeginLabel(commandBuffer, "deferlighting subpass Begin", glm::vec4(1, 1, 0, 1));
 	deferRenderingPass->nextSubPass(commandBuffer);
 	deferlightingRenderSystem->renderGameObjects(frameInfo, { lightDescriptorSets[frameIndex], imageDescriptorSets[frameIndex] }, commandBuffer);
+	debugutils::cmdEndLabel(commandBuffer);
+	debugutils::cmdBeginLabel(commandBuffer, "transparent subpass Begin", glm::vec4(0, 1, 0, 1));
 	deferRenderingPass->nextSubPass(commandBuffer);
 	transparentRenderSystem->renderGameObjects(frameInfo, commandBuffer);
+	debugutils::cmdEndLabel(commandBuffer);
 	deferRenderingPass->endRenderPass(commandBuffer);
 #endif
 
@@ -359,9 +369,9 @@ void ShAPP::buildCommandBuffer(uint32_t frameIndex, FrameInfo& frameInfo)
 
 	// order here matters
 	//simpleRenderSystem.renderGameObjects(frameInfo);
-#ifdef DEFERRENDERING
+//#ifdef DEFERRENDERING
 	blitRenderSystem->renderGameObjects(frameInfo, { blitDescriptorSets[frameIndex] }, commandBuffer);
-#endif
+//#endif
 
 	pointLightSystem->render(frameInfo, commandBuffer);
 
@@ -528,7 +538,9 @@ void ShAPP::initSubpassDeferRendering()
 #ifndef CALC_POSITION
 		.addBinding(binding++, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT)
 #endif
+#ifdef SHADOW
 		.addBinding(binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+#endif
 		.build();
 
 	for (int i = 0; i < lightDescriptorSets.size(); i++)
@@ -681,7 +693,8 @@ void ShAPP::loadGameObjects()
 	//floor.transform.scale = { 3.f, 1.f, 3.f };
 	//gameObjects.emplace(floor.getId(), std::move(floor));
 
-	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::FlipY;
+	//const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices | vkglTF::FileLoadingFlags::FlipY | vkglTF::FileLoadingFlags::PreMultiplyVertexColors;
+	const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreMultiplyVertexColors;
 	//const uint32_t glTFLoadingFlags = vkglTF::FileLoadingFlags::PreTransformVertices;
 	//const uint32_t glTFLoadingFlags = 0;
 	std::shared_ptr<Model> gltfModel = std::make_shared<Model>();
@@ -689,7 +702,7 @@ void ShAPP::loadGameObjects()
 
 	auto gltfgo = ShGameObject::createGameObject();
 	gltfgo.gltfmodel = gltfModel;
-	gltfgo.transform.translation = { 0.f, -0.5f, 0.f };
+	gltfgo.transform.translation = { 0.f, 0.0f, 0.f };
 	gltfgo.transform.scale = { 1.f, 1.f, 1.f };
 	gameObjects.emplace(gltfgo.getId(), std::move(gltfgo));
 
@@ -698,8 +711,9 @@ void ShAPP::loadGameObjects()
 
 	auto gltftgo = ShGameObject::createGameObject();
 	gltftgo.gltfmodel = gltfTransparentModel;
-	gltftgo.transform.translation = { 0.f, -0.5f, 0.f };
+	gltftgo.transform.translation = { 0.f, 0.0f, 0.f };
 	gltftgo.transform.scale = { 1.f, 1.f, 1.f };
+	gltftgo.isTransparent = true;
 	gameObjects.emplace(gltftgo.getId(), std::move(gltftgo));
 
 	transparentTex = std::make_unique<ShTexture2D>(shDevice);
@@ -707,8 +721,8 @@ void ShAPP::loadGameObjects()
 
 	std::vector<glm::vec3> lightColors{
 		{1.f, 1.f, 1.f},
-		//{1.f, .1f, .1f},
-		//{.1f, .1f, 1.f},
+		{1.f, .1f, .1f},
+		{.1f, .1f, 1.f},
 		//{.1f, 1.f, .1f},
 		//{1.f, 1.f, .1f},
 		//{.1f, 1.f, 1.f},
@@ -723,7 +737,7 @@ void ShAPP::loadGameObjects()
 			glm::mat4(1.f),
 			(i * glm::two_pi<float>()) / lightColors.size(),
 			{ 0.f, -1.f, 0.f });
-		pointLight.transform.translation = glm::vec3(rotateLight * glm::vec4(0.4f, 0.5f, 1.413f, 1.f));
+		pointLight.transform.translation = glm::vec3(rotateLight * glm::vec4(5.4f, 2.f, 5.413f, 1.f));
 		gameObjects.emplace(pointLight.getId(), std::move(pointLight));
 	}
 }

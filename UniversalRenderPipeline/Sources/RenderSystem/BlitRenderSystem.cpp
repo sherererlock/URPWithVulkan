@@ -46,7 +46,9 @@ void BlitRenderSystem::createPipeline(VkRenderPass renderPass, uint32_t subpass)
 	pipelineConfig.renderPass = renderPass;
 	pipelineConfig.pipelineLayout = pipelineLayout;
 	pipelineConfig.subpass = subpass;
+	//pipelineConfig.depthStencilInfo.depthTestEnable = VK_FALSE;
 	pipelineConfig.depthStencilInfo.depthWriteEnable = VK_FALSE;
+	pipelineConfig.depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 	pipelineConfig.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
 	lvePipeline = std::make_unique<ShPipeline>(
 		lveDevice,
